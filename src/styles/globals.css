@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-300;
+}
+
+/* Light theme colors */
+:root {
+  --color-primary: #0ea5e9;
+  --color-primary-dark: #0284c7;
+  --color-gold: #f59e0b;
+}
+
+/* Dark theme colors */
+html.dark {
+  --color-primary: #0284c7;
+  --color-primary-dark: #075985;
+  --color-gold: #fbbf24;
+}
+
+/* Smooth transitions */
+.transition-theme {
+  @apply transition-colors duration-300;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100 dark:bg-slate-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 dark:bg-slate-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-500 dark:bg-slate-500;
+}
+
+/* Utility classes */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-950;
+}
+
+.btn-primary {
+  @apply btn bg-primary-500 hover:bg-primary-600 text-white focus:ring-primary-500;
+}
+
+.btn-secondary {
+  @apply btn bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-50;
+}
+
+.btn-ghost {
+  @apply btn bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-50;
+}
+
+.input {
+  @apply w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 placeholder-slate-500 dark:placeholder-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500;
+}
+
+.card {
+  @apply bg-white dark:bg-slate-800 rounded-lg shadow-md dark:shadow-lg border border-slate-200 dark:border-slate-700 transition-colors;
+}
+
+.badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.badge-primary {
+  @apply badge bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-100;
+}
+
+.badge-success {
+  @apply badge bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100;
+}
+
+.badge-error {
+  @apply badge bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100;
+}
+
+.badge-warning {
+  @apply badge bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply inline-block animate-spin;
+}
+
+.spinner-sm {
+  @apply w-4 h-4;
+}
+
+.spinner-md {
+  @apply w-6 h-6;
+}
+
+.spinner-lg {
+  @apply w-8 h-8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
