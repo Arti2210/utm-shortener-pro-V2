@@ -90,7 +90,7 @@ export default async function handler(
           source: item.source,
           medium: item.medium,
           fullUtmUrl: item.fullUtmUrl,
-          shortUrl: shortenResult.success ? shortenResult.shortUrl : null,
+          shortUrl: shortenResult.success ? shortenResult.shortUrl : undefined,
           status: shortenResult.success ? 'success' : 'error',
           error: shortenResult.error,
         });
@@ -101,7 +101,7 @@ export default async function handler(
           source: item.source,
           medium: item.medium,
           fullUtmUrl: item.fullUtmUrl,
-          shortUrl: null,
+          shortUrl: undefined,
           status: 'success',
           error: 'No TinyURL API key provided - short URL not generated',
         });
