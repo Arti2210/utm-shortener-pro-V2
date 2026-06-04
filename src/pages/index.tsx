@@ -16,7 +16,6 @@ import SettingsModal from '../components/SettingsModal';
 export default function UTMShortenerPro() {
   const {
     language,
-    theme,
     tinyUrlApiKey,
     baseUrl,
     campaignName,
