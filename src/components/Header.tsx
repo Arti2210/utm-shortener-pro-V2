@@ -4,10 +4,9 @@ import { Language } from '../i18n/translations';
 interface HeaderProps {
   onOpenSettings: () => void;
   language: Language;
-  theme: 'light' | 'dark';
 }
 
-export default function Header({ onOpenSettings, language, theme }: HeaderProps) {
+export default function Header({ onOpenSettings, language }: HeaderProps) {
   return (
     <header className="bg-[#1a2d5a] border-b border-[#fbbf24]/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
