@@ -5,7 +5,6 @@ interface FormSectionProps {
   campaignName: string;
   onBaseUrlChange: (url: string) => void;
   onCampaignChange: (name: string) => void;
-  onGenerate: () => void;
   isGenerating: boolean;
   canGenerate: boolean;
   error: string | null;
@@ -17,7 +16,6 @@ export default function FormSection({
   campaignName,
   onBaseUrlChange,
   onCampaignChange,
-  onGenerate,
   isGenerating,
   canGenerate,
   error,
