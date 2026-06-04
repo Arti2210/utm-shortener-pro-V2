@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { generateCombinations, isValidUrl, sanitizeCampaignName } from '../../../utils/utm';
+import { generateCombinations, isValidUrl } from '../../../utils/utm';
 import { shortenUrl, batchShortenUrls } from '../../../utils/tinyurl';
 import { GeneratedLink } from '../../../store/appStore';
 
