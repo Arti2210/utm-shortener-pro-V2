@@ -35,7 +35,6 @@ export default function UTMShortenerPro() {
     addToHistory,
     openSettings,
     closeSettings,
-    resetForm,
     getFilteredHistory,
     getSelectedCombinationsCount,
   } = useAppStore();
@@ -170,7 +169,6 @@ export default function UTMShortenerPro() {
       <Header
         onOpenSettings={openSettings}
         language={language}
-        theme={theme}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -196,9 +194,6 @@ export default function UTMShortenerPro() {
                 campaignName={campaignName}
                 onBaseUrlChange={setBaseUrl}
                 onCampaignChange={setCampaignName}
-                onGenerate={handleGenerate}
-                isGenerating={isGenerating}
-                canGenerate={canGenerate}
                 error={error}
                 t={t}
               />
@@ -210,8 +205,6 @@ export default function UTMShortenerPro() {
               </h2>
 
               <MatrixSelector
-                selectedPlatforms={selectedPlatforms}
-                selectedMediums={selectedMediums}
                 combinationsCount={combinationsCount}
                 t={t}
               />
