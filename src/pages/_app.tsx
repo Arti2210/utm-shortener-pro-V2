@@ -4,9 +4,9 @@ import { useAppStore } from '../store/appStore';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const { theme, setTheme } = useAppStore();
+  const { theme } = useAppStore();
 
-  // Ensure theme is applied on initial load (in case persist rehydrates after first render)
+  // Ensure theme is applied on initial load
   useEffect(() => {
     if (typeof document !== 'undefined') {
       if (theme === 'dark') {
