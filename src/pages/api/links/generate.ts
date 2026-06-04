@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generateCombinations, isValidUrl } from '../../../utils/utm';
-import { shortenUrl, batchShortenUrls } from '../../../utils/tinyurl';
+import { batchShortenUrls } from '../../../utils/tinyurl';
 import { GeneratedLink } from '../../../store/appStore';
 
 interface GenerateRequestBody {
