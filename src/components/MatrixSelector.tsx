@@ -1,13 +1,11 @@
 import React from 'react';
 
 interface MatrixSelectorProps {
-  selectedPlatforms: string[];
-  selectedMediums: string[];
   combinationsCount: number;
   t: (key: any) => string;
 }
 
-export default function MatrixSelector({ selectedPlatforms, selectedMediums, combinationsCount, t }: MatrixSelectorProps) {
+export default function MatrixSelector({ combinationsCount, t }: MatrixSelectorProps) {
   return (
     <div className="space-y-4">
       <div className="text-sm text-[#cbd5e1]">
