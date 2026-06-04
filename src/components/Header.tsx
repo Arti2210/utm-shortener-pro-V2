@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Language } from '../i18n/translations';
 
 interface HeaderProps {
@@ -12,8 +13,14 @@ export default function Header({ onOpenSettings, language }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#fbbf24] rounded-lg flex items-center justify-center">
-              <span className="text-[#0c1e3e] font-bold text-xl">⊕</span>
+            <div className="w-10 h-10 relative">
+              <Image
+                src="/logo.png"
+                alt="UTM Shortener Pro Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
             </div>
             <span className="font-semibold text-xl tracking-tight">UTM Shortener Pro</span>
           </div>
