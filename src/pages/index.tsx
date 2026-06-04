@@ -146,7 +146,7 @@ export default function UTMShortenerPro() {
     }
   };
 
-  const handleLoadHistory = (item: HistoryItem) => {
+  const handleLoadHistory = (_item: HistoryItem) => {
     const resultsEl = document.getElementById('results-section');
     if (resultsEl) {
       resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
