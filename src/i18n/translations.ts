@@ -1,151 +1,256 @@
-export const translations = {
+export type Language = 'uk' | 'en';
+
+export interface Translations {
+  // App
+  appName: string;
+  tagline: string;
+  
+  // Header
+  language: string;
+  theme: string;
+  settings: string;
+  dark: string;
+  light: string;
+  
+  // Form
+  formTitle: string;
+  baseUrl: string;
+  baseUrlPlaceholder: string;
+  campaignName: string;
+  campaignNamePlaceholder: string;
+  campaignHint: string;
+  
+  // Matrix
+  matrixTitle: string;
+  platforms: string;
+  mediums: string;
+  selectAll: string;
+  clearAll: string;
+  selected: string;
+  combinationsWillBeGenerated: string;
+  
+  // Buttons
+  generateLinks: string;
+  generating: string;
+  copy: string;
+  copyAll: string;
+  clearHistory: string;
+  saveSettings: string;
+  cancel: string;
+  close: string;
+  
+  // Results
+  resultsTitle: string;
+  noResults: string;
+  platform: string;
+  medium: string;
+  fullUtmUrl: string;
+  shortUrl: string;
+  status: string;
+  actions: string;
+  success: string;
+  error: string;
+  copyFull: string;
+  copyShort: string;
+  allCopied: string;
+  
+  // History
+  historyTitle: string;
+  historyEmpty: string;
+  generatedAt: string;
+  linksCount: string;
+  view: string;
+  expired: string;
+  
+  // Settings Modal
+  settingsTitle: string;
+  tinyUrlApiKey: string;
+  apiKeyPlaceholder: string;
+  apiKeyHint: string;
+  apiKeySaved: string;
+  testConnection: string;
+  testing: string;
+  connectionSuccess: string;
+  connectionError: string;
+  
+  // Errors & Validation
+  invalidUrl: string;
+  urlRequired: string;
+  campaignRequired: string;
+  selectAtLeastOne: string;
+  noApiKeyWarning: string;
+  shortenFailed: string;
+  networkError: string;
+  unknownError: string;
+  
+  // Misc
+  loading: string;
+  copied: string;
+  expiresIn: string;
+  week: string;
+}
+
+export const translations: Record<Language, Translations> = {
   uk: {
-    // Header
     appName: 'UTM Shortener Pro',
+    tagline: 'Генеруйте та скорочуйте UTM-посилання для маркетингу',
+    
     language: 'Мова',
     theme: 'Тема',
     settings: 'Налаштування',
-    logout: 'Вихід',
-
-    // Main Form
+    dark: 'Темна',
+    light: 'Світла',
+    
+    formTitle: 'Створення UTM-посилань',
     baseUrl: 'Базова URL',
-    baseUrlPlaceholder: 'https://example.com/page',
-    campaignName: 'Назва кампанії',
-    campaignNamePlaceholder: 'Введіть назву кампанії',
-    selectCombinations: 'Виберіть комбінації',
+    baseUrlPlaceholder: 'https://example.com/landing',
+    campaignName: 'Назва кампанії (utm_campaign)',
+    campaignNamePlaceholder: 'summer_sale_2024',
+    campaignHint: 'Використовуйте латиницю, цифри, _ та -',
+    
+    matrixTitle: 'Матриця платформ та плейсментів',
     platforms: 'Платформи',
-    mediums: 'Плейсменти',
+    mediums: 'Типи контенту',
     selectAll: 'Вибрати все',
     clearAll: 'Очистити все',
-    generate: 'Генерувати посилання',
-
-    // Platform Names
-    telegram: 'Telegram',
-    facebook: 'Facebook',
-    linkedin: 'LinkedIn',
-    instagram: 'Instagram',
-    threads: 'Threads',
-
-    // Medium Names
-    post: 'Пост',
-    story: 'Історія',
-    reels: 'Рилс',
-
-    // Results
-    results: 'Результати',
-    platform: 'Платформа',
-    placement: 'Плейсмент',
-    fullLink: 'Повне посилання',
-    shortLink: 'Скорочене посилання',
+    selected: 'Вибрано',
+    combinationsWillBeGenerated: 'буде згенеровано комбінацій',
+    
+    generateLinks: 'Згенерувати посилання',
+    generating: 'Генерація...',
     copy: 'Копіювати',
-    copyAll: 'Копіювати все',
-    copied: 'Скопійовано!',
-    generatedAt: 'Згенеровано',
-    noResults: 'Немає результатів',
-
-    // History
-    history: 'Історія',
+    copyAll: 'Копіювати всі short',
     clearHistory: 'Очистити історію',
-    noHistory: 'Історія пуста',
-
-    // Settings
-    apiKey: 'API ключ TinyURL',
-    apiKeyPlaceholder: 'Введіть ваш API ключ',
     saveSettings: 'Зберегти',
-    settingsSaved: 'Налаштування збережені',
-
-    // Errors
-    invalidUrl: 'Невалідна URL',
-    invalidCampaignName: 'Невалідна назва кампанії',
-    apiKeyRequired: 'API ключ обов\'язковий',
-    errorGenerating: 'Помилка при генеруванні посилань',
-    errorShortening: 'Помилка при скороченні посилання',
-    apiKeyExpired: 'API ключ вичерпаний або невалідний',
-
-    // Validation
-    required: 'Обов\'язкове поле',
-    selectAtLeastOne: 'Виберіть принаймні одну комбінацію',
-
-    // Light/Dark Mode
-    lightMode: 'Світла тема',
-    darkMode: 'Темна тема',
+    cancel: 'Скасувати',
+    close: 'Закрити',
+    
+    resultsTitle: 'Результати генерації',
+    noResults: 'Немає результатів. Заповніть форму та натисніть "Згенерувати посилання".', 
+    platform: 'Платформа',
+    medium: 'Тип',
+    fullUtmUrl: 'Повне UTM',
+    shortUrl: 'Коротке посилання',
+    status: 'Статус',
+    actions: 'Дії',
+    success: 'Успіх',
+    error: 'Помилка',
+    copyFull: 'Копіювати повне',
+    copyShort: 'Копіювати short',
+    allCopied: 'Всі посилання скопійовано!',
+    
+    historyTitle: 'Історія генерацій',
+    historyEmpty: 'Історія порожня. Згенеруйте перші посилання.',
+    generatedAt: 'Створено',
+    linksCount: 'Кількість посилань',
+    view: 'Переглянути',
+    expired: 'Минуло',
+    
+    settingsTitle: 'Налаштування користувача',
+    tinyUrlApiKey: 'API ключ TinyURL',
+    apiKeyPlaceholder: 'Введіть ваш TinyURL API ключ',
+    apiKeyHint: 'Ключ зберігається локально. Отримайте на tinyurl.com/app',
+    apiKeySaved: 'Налаштування збережено',
+    testConnection: 'Перевірити зʼєднання',
+    testing: 'Перевірка...',
+    connectionSuccess: 'Зʼєднання успішне!',
+    connectionError: 'Помилка зʼєднання. Перевірте ключ.',
+    
+    invalidUrl: 'Будь ласка, введіть коректну URL (починається з http:// або https://)',
+    urlRequired: 'Базова URL обовʼязкова',
+    campaignRequired: 'Назва кампанії обовʼязкова',
+    selectAtLeastOne: 'Виберіть хоча б одну платформу та один тип контенту',
+    noApiKeyWarning: 'API ключ не вказано. Буде згенеровано тільки повні UTM-посилання (без скорочення).',
+    shortenFailed: 'Не вдалося скоротити',
+    networkError: 'Помилка мережі. Спробуйте пізніше.',
+    unknownError: 'Невідома помилка',
+    
+    loading: 'Завантаження...',
+    copied: 'Скопійовано!',
+    expiresIn: 'Зберігається',
+    week: 'тиждень',
   },
   en: {
-    // Header
     appName: 'UTM Shortener Pro',
+    tagline: 'Generate and shorten UTM links for marketing campaigns',
+    
     language: 'Language',
     theme: 'Theme',
     settings: 'Settings',
-    logout: 'Logout',
-
-    // Main Form
+    dark: 'Dark',
+    light: 'Light',
+    
+    formTitle: 'UTM Links Generation',
     baseUrl: 'Base URL',
-    baseUrlPlaceholder: 'https://example.com/page',
-    campaignName: 'Campaign Name',
-    campaignNamePlaceholder: 'Enter campaign name',
-    selectCombinations: 'Select Combinations',
+    baseUrlPlaceholder: 'https://example.com/landing',
+    campaignName: 'Campaign Name (utm_campaign)',
+    campaignNamePlaceholder: 'summer_sale_2024',
+    campaignHint: 'Use Latin letters, numbers, _ and -',
+    
+    matrixTitle: 'Platform & Placement Matrix',
     platforms: 'Platforms',
-    mediums: 'Placements',
+    mediums: 'Content Types',
     selectAll: 'Select All',
     clearAll: 'Clear All',
-    generate: 'Generate Links',
-
-    // Platform Names
-    telegram: 'Telegram',
-    facebook: 'Facebook',
-    linkedin: 'LinkedIn',
-    instagram: 'Instagram',
-    threads: 'Threads',
-
-    // Medium Names
-    post: 'Post',
-    story: 'Story',
-    reels: 'Reels',
-
-    // Results
-    results: 'Results',
-    platform: 'Platform',
-    placement: 'Placement',
-    fullLink: 'Full Link',
-    shortLink: 'Short Link',
+    selected: 'Selected',
+    combinationsWillBeGenerated: 'combinations will be generated',
+    
+    generateLinks: 'Generate Links',
+    generating: 'Generating...',
     copy: 'Copy',
-    copyAll: 'Copy All',
-    copied: 'Copied!',
-    generatedAt: 'Generated at',
-    noResults: 'No results',
-
-    // History
-    history: 'History',
+    copyAll: 'Copy all shorts',
     clearHistory: 'Clear History',
-    noHistory: 'History is empty',
-
-    // Settings
-    apiKey: 'TinyURL API Key',
-    apiKeyPlaceholder: 'Enter your API key',
     saveSettings: 'Save',
-    settingsSaved: 'Settings saved',
-
-    // Errors
-    invalidUrl: 'Invalid URL',
-    invalidCampaignName: 'Invalid campaign name',
-    apiKeyRequired: 'API key is required',
-    errorGenerating: 'Error generating links',
-    errorShortening: 'Error shortening URL',
-    apiKeyExpired: 'API key expired or invalid',
-
-    // Validation
-    required: 'Required field',
-    selectAtLeastOne: 'Select at least one combination',
-
-    // Light/Dark Mode
-    lightMode: 'Light Mode',
-    darkMode: 'Dark Mode',
+    cancel: 'Cancel',
+    close: 'Close',
+    
+    resultsTitle: 'Generation Results',
+    noResults: 'No results yet. Fill the form and click "Generate Links".', 
+    platform: 'Platform',
+    medium: 'Type',
+    fullUtmUrl: 'Full UTM URL',
+    shortUrl: 'Short URL',
+    status: 'Status',
+    actions: 'Actions',
+    success: 'Success',
+    error: 'Error',
+    copyFull: 'Copy full',
+    copyShort: 'Copy short',
+    allCopied: 'All links copied to clipboard!',
+    
+    historyTitle: 'Generation History',
+    historyEmpty: 'History is empty. Generate your first batch of links.',
+    generatedAt: 'Generated',
+    linksCount: 'Links count',
+    view: 'View',
+    expired: 'Expired',
+    
+    settingsTitle: 'User Settings',
+    tinyUrlApiKey: 'TinyURL API Key',
+    apiKeyPlaceholder: 'Enter your TinyURL API key',
+    apiKeyHint: 'Key is stored locally in your browser. Get it at tinyurl.com/app',
+    apiKeySaved: 'Settings saved successfully',
+    testConnection: 'Test Connection',
+    testing: 'Testing...',
+    connectionSuccess: 'Connection successful!',
+    connectionError: 'Connection failed. Please check your API key.',
+    
+    invalidUrl: 'Please enter a valid URL starting with http:// or https://',
+    urlRequired: 'Base URL is required',
+    campaignRequired: 'Campaign name is required',
+    selectAtLeastOne: 'Please select at least one platform and one content type',
+    noApiKeyWarning: 'No API key provided. Only full UTM URLs will be generated (no shortening).',
+    shortenFailed: 'Failed to shorten',
+    networkError: 'Network error. Please try again later.',
+    unknownError: 'Unknown error occurred',
+    
+    loading: 'Loading...',
+    copied: 'Copied!',
+    expiresIn: 'Stored for',
+    week: '1 week',
   },
 };
 
-export type Language = keyof typeof translations;
-export type TranslationKey = keyof (typeof translations)['uk'];
-
-export function t(key: TranslationKey, language: Language = 'uk'): string {
-  return translations[language][key] || key;
+export function getTranslation(lang: Language, key: keyof Translations): string {
+  return translations[lang][key] || key;
 }
