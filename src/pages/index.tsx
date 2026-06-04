@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useAppStore, PLATFORMS, MEDIUMS, GeneratedLink, HistoryItem } from '../store/appStore';
-import { getTranslation, Language } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
 import { isValidUrl, sanitizeCampaignName } from '../utils/utm';
 import axios from 'axios';
 
@@ -40,18 +40,17 @@ export default function UTMShortenerPro() {
     getSelectedCombinationsCount,
   } = useAppStore();
 
-  const t = (key: keyof import('../i18n/translations').Translations) => 
-    getTranslation(language, key);
+  const t = (key: any) => getTranslation(language, key);
 
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   const filteredHistory = useMemo(() => getFilteredHistory(), [history, getFilteredHistory]);
   const combinationsCount = getSelectedCombinationsCount();
 
-  const canGenerate = 
-    baseUrl.trim() !== '' && 
-    campaignName.trim() !== '' && 
-    selectedPlatforms.length > 0 && 
+  const canGenerate =
+    baseUrl.trim() !== '' &&
+    campaignName.trim() !== '' &&
+    selectedPlatforms.length > 0 &&
     selectedMediums.length > 0;
 
   const handleGenerate = async () => {
@@ -141,7 +140,7 @@ export default function UTMShortenerPro() {
       .filter(r => r.shortUrl)
       .map(r => r.shortUrl)
       .join('\n');
-    
+
     if (shortUrls) {
       await handleCopy(shortUrls, t('allCopied'));
     } else {
@@ -168,8 +167,8 @@ export default function UTMShortenerPro() {
         <title>{t('appName')} | Professional UTM Builder</title>
       </Head>
 
-      <Header 
-        onOpenSettings={openSettings} 
+      <Header
+        onOpenSettings={openSettings}
         language={language}
         theme={theme}
       />
@@ -185,12 +184,13 @@ export default function UTMShortenerPro() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left column */}
           <div className="lg:col-span-7 space-y-8">
             <div className="bg-[#1a2d5a] rounded-2xl p-8 shadow-xl border border-[#fbbf24]/10">
               <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
                 <span className="text-[#fbbf24]">1.</span> {t('formTitle')}
               </h2>
-              
+
               <FormSection
                 baseUrl={baseUrl}
                 campaignName={campaignName}
@@ -208,7 +208,7 @@ export default function UTMShortenerPro() {
               <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
                 <span className="text-[#fbbf24]">2.</span> {t('matrixTitle')}
               </h2>
-              
+
               <MatrixSelector
                 selectedPlatforms={selectedPlatforms}
                 selectedMediums={selectedMediums}
@@ -232,21 +232,20 @@ export default function UTMShortenerPro() {
                     {t('generating')}
                   </>
                 ) : (
-                  t('generateLinks
-
-')
+                  t('generateLinks')
                 )}
               </button>
             </div>
           </div>
 
+          {/* Right column */}
           <div className="lg:col-span-5 space-y-8">
             <div id="results-section" className="bg-[#1a2d5a] rounded-2xl p-8 shadow-xl border border-[#fbbf24]/10 min-h-[420px]">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold flex items-center gap-3">
                   <span className="text-[#fbbf24]">3.</span> {t('resultsTitle')}
                 </h2>
-                
+
                 {currentResults.length > 0 && (
                   <button
                     onClick={handleCopyAllShorts}
@@ -299,8 +298,8 @@ export default function UTMShortenerPro() {
         </div>
       </main>
 
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
+      <SettingsModal
+        isOpen={isSettingsOpen}
         onClose={closeSettings}
         t={t}
       />
