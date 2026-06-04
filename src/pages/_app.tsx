@@ -1,18 +1,19 @@
 import type { AppProps } from 'next/app';
 import { useEffect } from 'react';
-import { useAppStore } from '@/store/appStore';
-import '@/styles/globals.css';
+import { useAppStore } from '../store/appStore';
+import '../styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const theme = useAppStore((state) => state.theme);
+  const { theme, setTheme } = useAppStore();
 
+  // Ensure theme is applied on initial load (in case persist rehydrates after first render)
   useEffect(() => {
-    // Apply theme to document
-    const htmlElement = document.documentElement;
-    if (theme === 'dark') {
-      htmlElement.classList.add('dark');
-    } else {
-      htmlElement.classList.remove('dark');
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, [theme]);
 

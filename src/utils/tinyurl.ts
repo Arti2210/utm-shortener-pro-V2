@@ -1,130 +1,141 @@
-/**
- * TinyURL API Integration
- * Handles shortening of URLs using TinyURL API
- */
+import axios, { AxiosError } from 'axios';
 
-import axios from 'axios';
-
-const TINYURL_API_BASE = 'https://api.tinyurl.com';
-
-export interface ShortenUrlResponse {
-  data: {
-    tiny_url: string;
-    request_id: string;
-  };
-}
-
-export interface ShortenUrlError {
-  code: number;
-  message: string;
-  details?: string;
+export interface ShortenResult {
+  originalUrl: string;
+  shortUrl: string | null;
+  success: boolean;
+  error?: string;
 }
 
 /**
- * Shortens a URL using TinyURL API
+ * Shortens a single URL using TinyURL API v2
  */
 export async function shortenUrl(
-  url: string,
+  longUrl: string,
   apiKey: string
-): Promise<{ success: boolean; shortUrl?: string; error?: ShortenUrlError }> {
-  try {
-    if (!apiKey) {
-      return {
-        success: false,
-        error: {
-          code: 400,
-          message: 'API key is required',
-        },
-      };
-    }
+): Promise<ShortenResult> {
+  if (!apiKey || apiKey.trim() === '') {
+    return {
+      originalUrl: longUrl,
+      shortUrl: null,
+      success: false,
+      error: 'API key is required for shortening',
+    };
+  }
 
+  try {
     const response = await axios.post(
-      `${TINYURL_API_BASE}/create`,
+      'https://api.tinyurl.com/create',
       {
-        url,
+        url: longUrl,
+        domain: 'tinyurl.com',
       },
       {
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey.trim()}`,
         },
+        timeout: 10000,
       }
     );
 
-    return {
-      success: true,
-      shortUrl: response.data.data.tiny_url,
-    };
-  } catch (error: any) {
-    const statusCode = error.response?.status || 500;
-    const errorData = error.response?.data;
-
-    // Handle specific error codes
-    if (statusCode === 422) {
+    if (response.data && response.data.data && response.data.data.tiny_url) {
       return {
-        success: false,
-        error: {
-          code: 422,
-          message: 'Invalid URL format',
-          details: errorData?.errors?.[0]?.message || 'The URL provided is not valid',
-        },
-      };
-    }
-
-    if (statusCode === 401) {
-      return {
-        success: false,
-        error: {
-          code: 401,
-          message: 'Invalid or expired API key',
-        },
-      };
-    }
-
-    if (statusCode === 429) {
-      return {
-        success: false,
-        error: {
-          code: 429,
-          message: 'API rate limit exceeded',
-        },
+        originalUrl: longUrl,
+        shortUrl: response.data.data.tiny_url,
+        success: true,
       };
     }
 
     return {
+      originalUrl: longUrl,
+      shortUrl: null,
       success: false,
-      error: {
-        code: statusCode,
-        message: errorData?.message || 'Failed to shorten URL',
-        details: error.message,
-      },
+      error: 'Unexpected response from TinyURL',
+    };
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      const data = axiosError.response.data as any;
+      
+      if (status === 401 || status === 403) {
+        return {
+          originalUrl: longUrl,
+          shortUrl: null,
+          success: false,
+          error: 'Invalid or expired TinyURL API key',
+        };
+      }
+      
+      if (status === 429) {
+        return {
+          originalUrl: longUrl,
+          shortUrl: null,
+          success: false,
+          error: 'Rate limit exceeded. Please try again later.',
+        };
+      }
+      
+      if (status === 422) {
+        return {
+          originalUrl: longUrl,
+          shortUrl: null,
+          success: false,
+          error: data?.errors?.join(', ') || 'Invalid URL or parameters',
+        };
+      }
+      
+      return {
+        originalUrl: longUrl,
+        shortUrl: null,
+        success: false,
+        error: data?.message || `TinyURL API error (${status})`,
+      };
+    }
+    
+    if (axiosError.code === 'ECONNABORTED') {
+      return {
+        originalUrl: longUrl,
+        shortUrl: null,
+        success: false,
+        error: 'Request timeout. TinyURL API is slow.',
+      };
+    }
+    
+    return {
+      originalUrl: longUrl,
+      shortUrl: null,
+      success: false,
+      error: 'Network error while contacting TinyURL',
     };
   }
 }
 
 /**
- * Batch shorten multiple URLs
+ * Batch shorten multiple URLs with concurrency control
  */
-export async function shortenUrlsBatch(
+export async function batchShortenUrls(
   urls: string[],
-  apiKey: string
-): Promise<
-  Array<{
-    url: string;
-    shortUrl?: string;
-    error?: ShortenUrlError;
-  }>
-> {
-  const results = await Promise.all(
-    urls.map(async (url) => {
-      const result = await shortenUrl(url, apiKey);
-      return {
-        url,
-        shortUrl: result.shortUrl,
-        error: result.error,
-      };
-    })
-  );
-
+  apiKey: string,
+  onProgress?: (completed: number, total: number) => void
+): Promise<ShortenResult[]> {
+  const results: ShortenResult[] = [];
+  const total = urls.length;
+  
+  for (let i = 0; i < urls.length; i++) {
+    const result = await shortenUrl(urls[i], apiKey);
+    results.push(result);
+    
+    if (onProgress) {
+      onProgress(i + 1, total);
+    }
+    
+    if (i < urls.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
+  
   return results;
 }

@@ -1,79 +1,76 @@
-/**
- * UTM URL Builder - Generates valid UTM-tagged URLs
- */
-
-export interface UTMParams {
-  baseUrl: string;
-  campaign: string;
-  source: string;
-  medium: string;
-  term?: string;
-  content?: string;
-}
+import { GeneratedLink } from '../store/appStore';
 
 /**
- * Validates if a URL is properly formatted
+ * Validates if a string is a proper http/https URL
  */
 export function isValidUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
   try {
-    new URL(url);
-    return true;
+    const parsed = new URL(url.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }
 }
 
 /**
- * Builds a complete UTM URL with proper encoding
+ * Sanitizes campaign name for UTM (allows a-z0-9_- .)
  */
-export function buildUtmUrl(params: UTMParams): string {
-  if (!isValidUrl(params.baseUrl)) {
-    throw new Error('Invalid base URL format');
-  }
-
-  const url = new URL(params.baseUrl);
-  const searchParams = new URLSearchParams(url.search);
-
-  // Add UTM parameters
-  searchParams.set('utm_campaign', params.campaign);
-  searchParams.set('utm_source', params.source);
-  searchParams.set('utm_medium', params.medium);
-
-  // Add optional parameters if provided
-  if (params.term) {
-    searchParams.set('utm_term', params.term);
-  }
-  if (params.content) {
-    searchParams.set('utm_content', params.content);
-  }
-
-  url.search = searchParams.toString();
-  return url.toString();
+export function sanitizeCampaignName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_\-.]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
 }
 
 /**
- * Generates multiple UTM URLs from combinations
+ * Builds a single UTM-tagged URL
  */
-export function generateUtmCombinations(
+export function buildUtmUrl(
   baseUrl: string,
-  campaign: string,
-  combinations: Array<{ source: string; medium: string }>
-): Array<{ source: string; medium: string; utmUrl: string }> {
-  return combinations.map((combo) => ({
-    source: combo.source,
-    medium: combo.medium,
-    utmUrl: buildUtmUrl({
-      baseUrl,
-      campaign,
-      source: combo.source,
-      medium: combo.medium,
-    }),
-  }));
+  source: string,
+  medium: string,
+  campaign: string
+): string {
+  const cleanBase = baseUrl.trim().replace(/\/$/, ''); // remove trailing slash
+  const params = new URLSearchParams();
+  
+  params.set('utm_source', source);
+  params.set('utm_medium', medium);
+  params.set('utm_campaign', sanitizeCampaignName(campaign));
+  
+  return `${cleanBase}?${params.toString()}`;
 }
 
 /**
- * Validates campaign name
+ * Generates all combinations of platforms x mediums with UTM URLs
  */
-export function isValidCampaignName(name: string): boolean {
-  return name.trim().length > 0 && name.length <= 255;
+export function generateCombinations(
+  baseUrl: string,
+  campaignName: string,
+  platforms: string[],
+  mediums: string[]
+): Array<{ source: string; medium: string; fullUtmUrl: string }> {
+  const combinations: Array<{ source: string; medium: string; fullUtmUrl: string }> = [];
+  
+  for (const source of platforms) {
+    for (const medium of mediums) {
+      const fullUtmUrl = buildUtmUrl(baseUrl, source, medium, campaignName);
+      combinations.push({ source, medium, fullUtmUrl });
+    }
+  }
+  
+  return combinations;
+}
+
+/**
+ * Type guard for API response
+ */
+export interface GenerateApiResponse {
+  success: boolean;
+  data?: GeneratedLink[];
+  error?: string;
+  message?: string;
 }

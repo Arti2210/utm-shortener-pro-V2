@@ -5,8 +5,8 @@ export default function Document() {
     <Html lang="uk">
       <Head>
         <meta charSet="utf-8" />
-        <meta name="description" content="UTM Shortener Pro - Professional UTM link generator and shortener" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.png" />
+        <meta name="description" content="Professional UTM link generator and shortener for marketing and SMM specialists" />
       </Head>
       <body>
         <Main />

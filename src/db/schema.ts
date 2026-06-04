@@ -1,63 +1,53 @@
-import { mysqlTable, varchar, text, timestamp, boolean, int } from 'drizzle-orm/mysql-core';
-import { relations } from 'drizzle-orm';
+import { mysqlTable, serial, varchar, text, timestamp, boolean, int } from 'drizzle-orm/mysql-core';
 
-// Users table
+/**
+ * Users table - for future auth expansion
+ */
 export const users = mysqlTable('users', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  name: varchar('name', { length: 255 }),
-  password: text('password'),
-  tinyUrlApiKey: text('tiny_url_api_key'),
-  theme: varchar('theme', { length: 10 }).default('dark'), // 'light' or 'dark'
-  language: varchar('language', { length: 5 }).default('uk'), // 'uk' or 'en'
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 100 }),
+  theme: varchar('theme', { length: 10 }).default('dark'),
+  language: varchar('language', { length: 5 }).default('uk'),
+  tinyUrlApiKey: varchar('tiny_url_api_key', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
 
-// Generated links history table
+/**
+ * Generated links history (persisted to DB in full version)
 export const generatedLinks = mysqlTable('generated_links', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  id: serial('id').primaryKey(),
+  userId: int('user_id').references(() => users.id),
   baseUrl: text('base_url').notNull(),
-  campaignName: varchar('campaign_name', { length: 255 }).notNull(),
-  source: varchar('source', { length: 50 }).notNull(), // tg, fb, li, ig, threads
-  medium: varchar('medium', { length: 50 }).notNull(), // post, story, reels
+  campaignName: varchar('campaign_name', { length: 100 }).notNull(),
+  source: varchar('source', { length: 50 }).notNull(),
+  medium: varchar('medium', { length: 50 }).notNull(),
   fullUtmUrl: text('full_utm_url').notNull(),
   shortUrl: text('short_url'),
-  status: varchar('status', { length: 20 }).default('pending'), // pending, success, failed
+  status: varchar('status', { length: 20 }).default('success'),
   errorMessage: text('error_message'),
   createdAt: timestamp('created_at').defaultNow(),
-  expiresAt: timestamp('expires_at'), // 1 week from creation
 });
 
-// Supported platforms (extensible)
+/**
+ * Extensible platforms table
+ */
 export const platforms = mysqlTable('platforms', {
-  id: varchar('id', { length: 255 }).primaryKey(),
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
   name: varchar('name', { length: 100 }).notNull(),
-  code: varchar('code', { length: 50 }).unique().notNull(), // tg, fb, li, ig, threads
-  icon: varchar('icon', { length: 255 }),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Supported mediums (extensible)
+/**
+ * Extensible mediums table
+ */
 export const mediums = mysqlTable('mediums', {
-  id: varchar('id', { length: 255 }).primaryKey(),
+  id: serial('id').primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
   name: varchar('name', { length: 100 }).notNull(),
-  code: varchar('code', { length: 50 }).unique().notNull(), // post, story, reels
-  icon: varchar('icon', { length: 255 }),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });
-
-// Relations
-export const usersRelations = relations(users, ({ many }) => ({
-  generatedLinks: many(generatedLinks),
-}));
-
-export const generatedLinksRelations = relations(generatedLinks, ({ one }) => ({
-  user: one(users, {
-    fields: [generatedLinks.userId],
-    references: [users.id],
-  }),
-}));
