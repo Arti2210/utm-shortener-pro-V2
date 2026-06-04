@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Head from 'next/head';
-import { useAppStore, PLATFORMS, MEDIUMS, GeneratedLink, HistoryItem } from '../store/appStore';
+import { useAppStore, GeneratedLink, HistoryItem } from '../store/appStore';
 import { getTranslation } from '../i18n/translations';
 import { isValidUrl, sanitizeCampaignName } from '../utils/utm';
 import axios from 'axios';
