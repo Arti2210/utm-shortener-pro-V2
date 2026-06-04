@@ -1,84 +1,122 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { buildUtmUrl, generateUtmCombinations, isValidUrl, isValidCampaignName } from '@/utils/utm';
-import { shortenUrlsBatch } from '@/utils/tinyurl';
-import { v4 as uuidv4 } from 'uuid';
+import { generateCombinations, isValidUrl, sanitizeCampaignName } from '../../../utils/utm';
+import { shortenUrl, batchShortenUrls } from '../../../utils/tinyurl';
+import { GeneratedLink } from '../../../store/appStore';
 
-interface GenerateLinksRequest {
+interface GenerateRequestBody {
   baseUrl: string;
   campaignName: string;
-  combinations: Array<{ source: string; medium: string }>;
-  apiKey: string;
-}
-
-interface GenerateLinksResponse {
-  success: boolean;
-  data?: Array<{
-    source: string;
-    medium: string;
-    fullUtmUrl: string;
-    shortUrl?: string;
-    status: 'success' | 'failed';
-    error?: string;
-  }>;
-  error?: string;
+  combinations?: Array<{ source: string; medium: string }>;
+  selectedPlatforms?: string[];
+  selectedMediums?: string[];
+  apiKey?: string;
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GenerateLinksResponse>
+  res: NextApiResponse<{ success: boolean; data?: GeneratedLink[]; error?: string; message?: string }>
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
-    const { baseUrl, campaignName, combinations, apiKey }: GenerateLinksRequest = req.body;
+    const {
+      baseUrl,
+      campaignName,
+      combinations,
+      selectedPlatforms,
+      selectedMediums,
+      apiKey,
+    }: GenerateRequestBody = req.body;
 
-    // Validation
     if (!baseUrl || !isValidUrl(baseUrl)) {
-      return res.status(400).json({ success: false, error: 'Invalid base URL' });
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or missing baseUrl. Must be a valid http/https URL.',
+      });
     }
 
-    if (!campaignName || !isValidCampaignName(campaignName)) {
-      return res.status(400).json({ success: false, error: 'Invalid campaign name' });
+    if (!campaignName || campaignName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Campaign name is required (min 2 characters).',
+      });
     }
 
-    if (!combinations || combinations.length === 0) {
-      return res.status(400).json({ success: false, error: 'No combinations selected' });
+    let finalCombinations: Array<{ source: string; medium: string }> = [];
+
+    if (combinations && combinations.length > 0) {
+      finalCombinations = combinations;
+    } else if (selectedPlatforms && selectedMediums) {
+      for (const source of selectedPlatforms) {
+        for (const medium of selectedMediums) {
+          finalCombinations.push({ source, medium });
+        }
+      }
     }
 
-    if (!apiKey) {
-      return res.status(400).json({ success: false, error: 'API key is required' });
+    if (finalCombinations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No platform/medium combinations provided.',
+      });
     }
 
-    // Generate UTM URLs
-    const utmUrls = generateUtmCombinations(baseUrl, campaignName, combinations);
+    if (finalCombinations.length > 50) {
+      return res.status(400).json({
+        success: false,
+        error: 'Too many combinations (max 50 allowed per request).',
+      });
+    }
 
-    // Extract just the URLs for shortening
-    const urlsToShorten = utmUrls.map((item) => item.utmUrl);
+    const utmLinks = generateCombinations(
+      baseUrl,
+      campaignName,
+      finalCombinations.map(c => c.source),
+      finalCombinations.map(c => c.medium)
+    );
 
-    // Shorten URLs using TinyURL
-    const shortenedResults = await shortenUrlsBatch(urlsToShorten, apiKey);
+    const results: GeneratedLink[] = [];
+    const hasApiKey = apiKey && apiKey.trim().length > 10;
 
-    // Combine results
-    const results = utmUrls.map((utm, index) => {
-      const shortened = shortenedResults[index];
-      return {
-        source: utm.source,
-        medium: utm.medium,
-        fullUtmUrl: utm.utmUrl,
-        shortUrl: shortened.shortUrl,
-        status: shortened.error ? ('failed' as const) : ('success' as const),
-        error: shortened.error?.message,
-      };
+    if (hasApiKey) {
+      const longUrls = utmLinks.map(item => item.fullUtmUrl);
+      const shortenResults = await batchShortenUrls(longUrls, apiKey.trim());
+
+      utmLinks.forEach((item, index) => {
+        const shortenResult = shortenResults[index];
+        results.push({
+          source: item.source,
+          medium: item.medium,
+          fullUtmUrl: item.fullUtmUrl,
+          shortUrl: shortenResult.success ? shortenResult.shortUrl : null,
+          status: shortenResult.success ? 'success' : 'error',
+          error: shortenResult.error,
+        });
+      });
+    } else {
+      utmLinks.forEach((item) => {
+        results.push({
+          source: item.source,
+          medium: item.medium,
+          fullUtmUrl: item.fullUtmUrl,
+          shortUrl: null,
+          status: 'success',
+          error: 'No TinyURL API key provided - short URL not generated',
+        });
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: results,
     });
-
-    return res.status(200).json({ success: true, data: results });
   } catch (error: any) {
-    console.error('Error generating links:', error);
+    console.error('Generate API error:', error);
     return res.status(500).json({
       success: false,
-      error: error.message || 'Internal server error',
+      error: error.message || 'Internal server error during link generation',
     });
   }
 }
