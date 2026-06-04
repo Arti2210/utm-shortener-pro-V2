@@ -26,18 +26,16 @@ export default function ResultsTable({ results, onCopy, copySuccess, t }: Result
               <div className="font-medium">{result.source} × {result.medium}</div>
               <div className="text-xs text-[#64748b] break-all">{result.fullUtmUrl}</div>
             </div>
-              {result.shortUrl && (
-                <button
-                  onClick={() => onCopy(result.shortUrl!, t('copied'))}
-                  className="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded transition"
-                >
-                  {copySuccess === t('copied') ? '✓' : t('copy')}
-                </button>
-              )}
+            {result.shortUrl && (
+              <button
+                onClick={() => onCopy(result.shortUrl!, t('copied'))}
+                className="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded transition"
+              >
+                {copySuccess === t('copied') ? '✓' : t('copy')}
+              </button>
+            )}
           </div>
-          {result.shortUrl && (
-            <div className="text-[#fbbf24] text-sm break-all">{result.shortUrl}</div>
-          )}
+          {result.shortUrl && <div className="text-[#fbbf24] text-sm break-all">{result.shortUrl}</div>}
         </div>
       ))}
     </div>
