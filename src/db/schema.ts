@@ -1,4 +1,4 @@
-import { mysqlTable, serial, varchar, timestamp, boolean, int } from 'drizzle-orm/mysql2';
+import { mysqlTable, serial, varchar, timestamp, boolean, int } from 'drizzle-orm/mysql-core';
 
 /**
  * Users table - for future auth expansion
