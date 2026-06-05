@@ -10,15 +10,20 @@ export interface Platform {
 export interface Medium {
   code: string;
   name: string;
+  /** Platforms (codes) for which this medium is valid. Empty array = available to all. */
+  availableFor?: string[];
 }
+
+export type LinkStatus = 'success' | 'failed' | 'pending';
 
 export interface GeneratedLink {
   source: string;
   medium: string;
   fullUtmUrl: string;
-  shortUrl: string | null | undefined;
-  status: 'success' | 'error';
+  shortUrl: string | null;
+  status: LinkStatus;
   error?: string;
+  attempts: number;
 }
 
 export interface HistoryItem {
@@ -55,6 +60,7 @@ export interface AppState {
   selectAllMediums: () => void;
   clearAllMediums: () => void;
   setCurrentResults: (results: GeneratedLink[]) => void;
+  updateResult: (source: string, medium: string, patch: Partial<GeneratedLink>) => void;
   setIsGenerating: (loading: boolean) => void;
   setError: (error: string | null) => void;
   addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
@@ -65,24 +71,39 @@ export interface AppState {
   resetForm: () => void;
   getFilteredHistory: () => HistoryItem[];
   getSelectedCombinationsCount: () => number;
+  getFailedResults: () => GeneratedLink[];
 }
 
-const PLATFORMS: Platform[] = [
-  { code: 'tg', name: 'Telegram' },
-  { code: 'fb', name: 'Facebook' },
-  { code: 'li', name: 'LinkedIn' },
-  { code: 'ig', name: 'Instagram' },
+export const PLATFORMS: Platform[] = [
+  { code: 'telegram', name: 'Telegram' },
+  { code: 'facebook', name: 'Facebook' },
+  { code: 'instagram', name: 'Instagram' },
+  { code: 'linkedin', name: 'LinkedIn' },
   { code: 'threads', name: 'Threads' },
+  { code: 'youtube', name: 'YouTube' },
 ];
 
-const MEDIUMS: Medium[] = [
+export const MEDIUMS: Medium[] = [
   { code: 'post', name: 'Post' },
   { code: 'story', name: 'Story' },
   { code: 'reels', name: 'Reels' },
+  // Profile Header is YouTube-specific (channel header). It can still be picked
+  // alongside the others but only yields a valid UTM combination for YouTube.
+  { code: 'profile_header', name: 'Profile Header', availableFor: ['youtube'] },
 ];
 
-const EXPIRATION_DAYS = 7;
+/**
+ * Returns true if the (platform, medium) combination is valid for the matrix.
+ * Profile Header is only valid for YouTube; the rest are valid for all platforms.
+ */
+export function isValidCombination(platformCode: string, mediumCode: string): boolean {
+  const medium = MEDIUMS.find((m) => m.code === mediumCode);
+  if (!medium) return false;
+  if (!medium.availableFor || medium.availableFor.length === 0) return true;
+  return medium.availableFor.includes(platformCode);
+}
 
+const EXPIRATION_DAYS = 7;
 const EXPIRATION_MS = EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
 export const useAppStore = create<AppState>()(
@@ -100,12 +121,14 @@ export const useAppStore = create<AppState>()(
       error: null,
       history: [],
       isSettingsOpen: false,
+
       setLanguage: (language) => {
         set({ language });
         if (typeof document !== 'undefined') {
           document.documentElement.lang = language;
         }
       },
+
       setTheme: (theme) => {
         set({ theme });
         if (typeof document !== 'undefined') {
@@ -116,68 +139,100 @@ export const useAppStore = create<AppState>()(
           }
         }
       },
+
       setTinyUrlApiKey: (tinyUrlApiKey) => set({ tinyUrlApiKey }),
       setBaseUrl: (baseUrl) => set({ baseUrl, error: null }),
       setCampaignName: (campaignName) => set({ campaignName, error: null }),
+
       togglePlatform: (code) => {
         const { selectedPlatforms } = get();
         const newSelected = selectedPlatforms.includes(code)
-          ? selectedPlatforms.filter(p => p !== code)
+          ? selectedPlatforms.filter((p) => p !== code)
           : [...selectedPlatforms, code];
         set({ selectedPlatforms: newSelected });
       },
+
       toggleMedium: (code) => {
         const { selectedMediums } = get();
         const newSelected = selectedMediums.includes(code)
-          ? selectedMediums.filter(m => m !== code)
+          ? selectedMediums.filter((m) => m !== code)
           : [...selectedMediums, code];
         set({ selectedMediums: newSelected });
       },
-      selectAllPlatforms: () => set({ selectedPlatforms: PLATFORMS.map(p => p.code) }),
+
+      selectAllPlatforms: () => set({ selectedPlatforms: PLATFORMS.map((p) => p.code) }),
       clearAllPlatforms: () => set({ selectedPlatforms: [] }),
-      selectAllMediums: () => set({ selectedMediums: MEDIUMS.map(m => m.code) }),
+      selectAllMediums: () => set({ selectedMediums: MEDIUMS.map((m) => m.code) }),
       clearAllMediums: () => set({ selectedMediums: [] }),
+
       setCurrentResults: (currentResults) => set({ currentResults }),
+
+      updateResult: (source, medium, patch) => {
+        set((state) => ({
+          currentResults: state.currentResults.map((r) =>
+            r.source === source && r.medium === medium ? { ...r, ...patch } : r
+          ),
+        }));
+      },
+
       setIsGenerating: (isGenerating) => set({ isGenerating }),
       setError: (error) => set({ error }),
+
       addToHistory: (item) => {
         const newItem: HistoryItem = {
           ...item,
-          id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2),
           timestamp: Date.now(),
         };
         set((state) => ({
           history: [newItem, ...state.history].slice(0, 50),
         }));
       },
+
       clearHistory: () => set({ history: [] }),
+
       loadFromHistory: (item) => {
         set({
           baseUrl: item.baseUrl,
           campaignName: item.campaignName,
           currentResults: item.results,
-          selectedPlatforms: [...new Set(item.results.map(r => r.source))],
-          selectedMediums: [...new Set(item.results.map(r => r.medium))],
+          selectedPlatforms: [...new Set(item.results.map((r) => r.source))],
+          selectedMediums: [...new Set(item.results.map((r) => r.medium))],
         });
       },
+
       openSettings: () => set({ isSettingsOpen: true }),
       closeSettings: () => set({ isSettingsOpen: false }),
-      resetForm: () => set({
-        baseUrl: '',
-        campaignName: '',
-        selectedPlatforms: [],
-        selectedMediums: [],
-        currentResults: [],
-        error: null,
-      }),
+
+      resetForm: () =>
+        set({
+          baseUrl: '',
+          campaignName: '',
+          selectedPlatforms: [],
+          selectedMediums: [],
+          currentResults: [],
+          error: null,
+        }),
+
       getFilteredHistory: () => {
         const now = Date.now();
-        return get().history.filter(item => (now - item.timestamp) < EXPIRATION_MS);
+        return get().history.filter((item) => now - item.timestamp < EXPIRATION_MS);
       },
+
       getSelectedCombinationsCount: () => {
         const { selectedPlatforms, selectedMediums } = get();
-        return selectedPlatforms.length * selectedMediums.length;
+        if (selectedPlatforms.length === 0 || selectedMediums.length === 0) return 0;
+        let count = 0;
+        for (const p of selectedPlatforms) {
+          for (const m of selectedMediums) {
+            if (isValidCombination(p, m)) count += 1;
+          }
+        }
+        return count;
       },
+
+      getFailedResults: () =>
+        get().currentResults.filter((r) => r.status === 'failed'),
     }),
     {
       name: 'utm-shortener-storage',
@@ -200,12 +255,10 @@ export const useAppStore = create<AppState>()(
           }
           const now = Date.now();
           state.history = state.history.filter(
-            (item: HistoryItem) => (now - item.timestamp) < EXPIRATION_MS
+            (item: HistoryItem) => now - item.timestamp < EXPIRATION_MS
           );
         }
       },
     }
   )
 );
-
-export { PLATFORMS, MEDIUMS };

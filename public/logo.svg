@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="teal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a5e5c"/>
+      <stop offset="100%" stop-color="#0d3a38"/>
+    </linearGradient>
+    <linearGradient id="copper" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c08050"/>
+      <stop offset="100%" stop-color="#8a4a1f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Letter Y - teal outer with copper inner -->
+  <!-- Y left arm -->
+  <path d="M 30 30 L 55 30 L 80 80 L 80 170 L 60 170 L 60 85 Z" fill="url(#teal)"/>
+  <!-- Y right arm -->
+  <path d="M 80 30 L 105 30 L 70 95 L 65 80 Z" fill="url(#copper)"/>
+  <!-- Y stem vertical -->
+  <rect x="65" y="80" width="15" height="90" fill="url(#teal)"/>
+
+  <!-- Letter S - copper outer with teal inner -->
+  <!-- S top bar -->
+  <path d="M 110 30 L 175 30 L 175 50 L 130 50 L 130 70 L 175 70 L 175 100 L 110 100 L 110 80 L 155 80 L 155 60 L 110 60 Z" fill="url(#copper)"/>
+  <!-- S bottom bar -->
+  <path d="M 110 130 L 155 130 L 155 150 L 110 150 L 110 170 L 175 170 L 175 130 L 175 100 L 155 100 L 155 130 Z" fill="url(#copper)"/>
+  <!-- S teal accents -->
+  <rect x="110" y="30" width="20" height="20" fill="url(#teal)"/>
+  <rect x="155" y="60" width="20" height="20" fill="url(#teal)"/>
+  <rect x="110" y="150" width="20" height="20" fill="url(#teal)"/>
+  <rect x="155" y="100" width="20" height="20" fill="url(#teal)"/>
+</svg>

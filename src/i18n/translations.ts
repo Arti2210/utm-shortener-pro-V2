@@ -88,6 +88,8 @@ export interface Translations {
   copied: string;
   expiresIn: string;
   week: string;
+  retryFailed: string;
+  retrying: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -169,6 +171,8 @@ export const translations: Record<Language, Translations> = {
     copied: 'Скопійовано!',
     expiresIn: 'Зберігається',
     week: 'тиждень',
+    retryFailed: 'Повторити невдалі',
+    retrying: 'Повторюємо...',
   },
   en: {
     appName: 'UTM Shortener Pro',
@@ -248,6 +252,8 @@ export const translations: Record<Language, Translations> = {
     copied: 'Copied!',
     expiresIn: 'Stored for',
     week: '1 week',
+    retryFailed: 'Retry failed',
+    retrying: 'Retrying...',
   },
 };
 
