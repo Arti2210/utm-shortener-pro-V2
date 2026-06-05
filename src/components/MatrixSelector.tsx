@@ -99,10 +99,6 @@ export default function MatrixSelector({ combinationsCount, t }: MatrixSelectorP
                           if (cellDisabled) return;
                           if (!rowSelected) togglePlatform(p.code);
                           if (!colSelected) toggleMedium(m.code);
-                          if (rowSelected && colSelected) {
-                            togglePlatform(p.code);
-                            toggleMedium(m.code);
-                          }
                         }}
                         disabled={cellDisabled}
                         aria-label={`${p.name} - ${m.name}`}
