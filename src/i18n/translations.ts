@@ -65,7 +65,9 @@ export interface Translations {
   
   // Settings Modal
   settingsTitle: string;
-  tinyUrlApiKey: string;
+  shortIoApiKey: string;
+  shortIoDomain: string;
+  shortIoDomainHint: string;
   apiKeyPlaceholder: string;
   apiKeyHint: string;
   apiKeySaved: string;
@@ -151,9 +153,11 @@ export const translations: Record<Language, Translations> = {
     expired: 'Минуло',
     
     settingsTitle: 'Налаштування користувача',
-    tinyUrlApiKey: 'API ключ TinyURL',
-    apiKeyPlaceholder: 'Введіть ваш TinyURL API ключ',
-    apiKeyHint: 'Ключ зберігається локально. Отримайте на tinyurl.com/app',
+    shortIoApiKey: 'API ключ Short.io',
+    shortIoDomain: 'Домен Short.io',
+    shortIoDomainHint: 'Домен має бути зареєстрований у вашому акаунті Short.io',
+    apiKeyPlaceholder: 'Введіть ваш Short.io API ключ (sk_…)',
+    apiKeyHint: 'Ключ зберігається локально. Отримайте на app.short.io/settings/api',
     apiKeySaved: 'Налаштування збережено',
     testConnection: 'Перевірити зʼєднання',
     testing: 'Перевірка...',
@@ -233,9 +237,11 @@ export const translations: Record<Language, Translations> = {
     expired: 'Expired',
     
     settingsTitle: 'User Settings',
-    tinyUrlApiKey: 'TinyURL API Key',
-    apiKeyPlaceholder: 'Enter your TinyURL API key',
-    apiKeyHint: 'Key is stored locally in your browser. Get it at tinyurl.com/app',
+    shortIoApiKey: 'Short.io API Key',
+    shortIoDomain: 'Short.io domain',
+    shortIoDomainHint: 'Domain must be registered in your Short.io account',
+    apiKeyPlaceholder: 'Enter your Short.io API key (sk_…)',
+    apiKeyHint: 'Key is stored locally in your browser. Get it at app.short.io/settings/api',
     apiKeySaved: 'Settings saved successfully',
     testConnection: 'Test Connection',
     testing: 'Testing...',

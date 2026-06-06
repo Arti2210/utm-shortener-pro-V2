@@ -6,14 +6,32 @@ export interface ShortenResult {
 }
 
 /**
- * Shortens a single URL using TinyURL API v2.
+ * Short.io API key format: `sk_XXXXXXXX` (no "Bearer" prefix needed —
+ * the API expects the raw key in the `Authorization` header).
+ */
+export interface ShortenOptions {
+  apiKey: string;
+  /** Custom domain registered in Short.io, e.g. "arti.s.gy". */
+  domain?: string;
+  /** Optional TTL for the short link in seconds. */
+  expiresAt?: number;
+}
+
+/**
+ * Shortens a single URL using Short.io (https://api.short.io/links).
  * Uses native fetch (Node 18+ / browsers) — no external HTTP client.
  */
 export async function shortenUrl(
   longUrl: string,
-  apiKey: string
+  apiKeyOrOptions: string | ShortenOptions
 ): Promise<ShortenResult> {
-  if (!apiKey || apiKey.trim() === '') {
+  const opts: ShortenOptions =
+    typeof apiKeyOrOptions === 'string'
+      ? { apiKey: apiKeyOrOptions }
+      : apiKeyOrOptions;
+
+  const apiKey = opts.apiKey?.trim();
+  if (!apiKey) {
     return {
       originalUrl: longUrl,
       shortUrl: null,
@@ -23,24 +41,32 @@ export async function shortenUrl(
   }
 
   try {
-    const response = await fetch('https://api.tinyurl.com/create', {
+    const body: Record<string, any> = {
+      originalURL: longUrl,
+    };
+    if (opts.domain) {
+      body.domain = opts.domain;
+    }
+    if (typeof opts.expiresAt === 'number') {
+      body.expiresAt = opts.expiresAt;
+    }
+
+    const response = await fetch('https://api.short.io/links', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey.trim()}`,
+        Accept: 'application/json',
+        Authorization: apiKey,
       },
-      body: JSON.stringify({
-        url: longUrl,
-        domain: 'tinyurl.com',
-      }),
+      body: JSON.stringify(body),
     });
 
     const data: any = await response.json().catch(() => null);
 
-    if (response.ok && data?.data?.tiny_url) {
+    if (response.ok && data?.shortURL) {
       return {
         originalUrl: longUrl,
-        shortUrl: data.data.tiny_url,
+        shortUrl: data.shortURL,
         success: true,
       };
     }
@@ -50,7 +76,7 @@ export async function shortenUrl(
         originalUrl: longUrl,
         shortUrl: null,
         success: false,
-        error: 'Invalid or expired TinyURL API key',
+        error: 'Invalid or expired Short.io API key',
       };
     }
 
@@ -68,7 +94,10 @@ export async function shortenUrl(
         originalUrl: longUrl,
         shortUrl: null,
         success: false,
-        error: data?.errors?.join(', ') || 'Invalid URL or parameters',
+        error:
+          (Array.isArray(data?.errors) && data.errors.join(', ')) ||
+          data?.message ||
+          'Invalid URL or parameters',
       };
     }
 
@@ -76,7 +105,7 @@ export async function shortenUrl(
       originalUrl: longUrl,
       shortUrl: null,
       success: false,
-      error: data?.message || `TinyURL API error (${response.status})`,
+      error: data?.message || `Short.io API error (${response.status})`,
     };
   } catch (e: any) {
     if (e?.name === 'AbortError' || e?.code === 'ABORT_ERR') {

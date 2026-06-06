@@ -48,7 +48,8 @@ export interface HistoryItem {
 export interface AppState {
   language: Language;
   theme: 'light' | 'dark';
-  tinyUrlApiKey: string;
+  shortIoApiKey: string;
+  shortIoDomain: string;
   baseUrl: string;
   campaignName: string;
   /** The list of selected (platform, placement) pairs. */
@@ -60,7 +61,8 @@ export interface AppState {
   isSettingsOpen: boolean;
   setLanguage: (lang: Language) => void;
   setTheme: (theme: 'light' | 'dark') => void;
-  setTinyUrlApiKey: (key: string) => void;
+  setShortIoApiKey: (key: string) => void;
+  setShortIoDomain: (domain: string) => void;
   setBaseUrl: (url: string) => void;
   setCampaignName: (name: string) => void;
   /** Toggle a single (platform, placement) pair in the matrix. */
@@ -130,7 +132,8 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       language: 'uk',
       theme: 'dark',
-      tinyUrlApiKey: '',
+      shortIoApiKey: '',
+      shortIoDomain: 'arti.s.gy',
       baseUrl: '',
       campaignName: '',
       selectedCells: [],
@@ -158,7 +161,9 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      setTinyUrlApiKey: (tinyUrlApiKey) => set({ tinyUrlApiKey }),
+      setShortIoApiKey: (shortIoApiKey) => set({ shortIoApiKey }),
+      setShortIoDomain: (shortIoDomain) =>
+        set({ shortIoDomain: shortIoDomain.trim() }),
       setBaseUrl: (baseUrl) => set({ baseUrl, error: null }),
       setCampaignName: (campaignName) => set({ campaignName, error: null }),
 
@@ -318,7 +323,8 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         language: state.language,
         theme: state.theme,
-        tinyUrlApiKey: state.tinyUrlApiKey,
+        shortIoApiKey: state.shortIoApiKey,
+        shortIoDomain: state.shortIoDomain,
         history: state.history,
       }),
       onRehydrateStorage: () => (state) => {

@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { isValidUrl, sanitizeCampaignName, buildUtmUrl } from '../../../utils/utm';
-import { shortenUrl, ShortenResult } from '../../../utils/tinyurl';
+import { shortenUrl, ShortenResult } from '../../../utils/shortio';
 import { isValidCombination, GeneratedLink } from '../../../store/appStore';
 
 interface SingleUrlBody {
   url: string;
   apiKey?: string;
+  domain?: string;
 }
 
 interface BatchBody {
@@ -13,6 +14,7 @@ interface BatchBody {
   campaignName: string;
   combinations: Array<{ source: string; medium: string }>;
   apiKey?: string;
+  domain?: string;
 }
 
 type GenerateBody = SingleUrlBody | BatchBody;
@@ -45,17 +47,26 @@ export default async function handler(
       if (!apiKey) {
         return res.status(400).json({
           success: false,
-          error: 'TinyURL API key is required for shortening',
+          error: 'Short.io API key is required for shortening',
         });
       }
 
-      const result: ShortenResult = await shortenUrl(body.url, apiKey);
+      const result: ShortenResult = await shortenUrl(body.url, {
+        apiKey,
+        domain: body.domain?.trim() || undefined,
+      });
 
       // Build a thin GeneratedLink so the client can update via (source, medium).
       // We can't reliably decompose the UTM URL client-side, so we echo what we can.
-      const params = new URL(body.url).searchParams;
-      const source = params.get('utm_source') || '';
-      const medium = params.get('utm_medium') || '';
+      let source = '';
+      let medium = '';
+      try {
+        const params = new URL(body.url).searchParams;
+        source = params.get('utm_source') || '';
+        medium = params.get('utm_medium') || '';
+      } catch {
+        /* ignore — body.url is already validated */
+      }
 
       return res.status(result.success ? 200 : 502).json({
         success: result.success,
@@ -109,11 +120,12 @@ export default async function handler(
     );
 
     const sanitized = sanitizeCampaignName(campaignName);
+    const domain = body.domain?.trim() || undefined;
     const results: GeneratedLink[] = [];
 
     // We use per-link shortening in parallel to support retry semantics and
     // give the client a clear per-link status. Bounded concurrency avoids
-    // hammering TinyURL.
+    // hammering Short.io.
     const CONCURRENCY = 4;
     const queue = [...validCombos];
 
@@ -133,7 +145,7 @@ export default async function handler(
           });
           continue;
         }
-        const r = await shortenUrl(full, body.apiKey.trim());
+        const r = await shortenUrl(full, { apiKey: body.apiKey!.trim(), domain });
         results.push({
           source: combo.source,
           medium: combo.medium,

@@ -28,6 +28,7 @@ async function sleep(ms: number) {
 async function shortenWithRetry(
   url: string,
   apiKey: string,
+  domain: string,
   onUpdate: (patch: Partial<GeneratedLink>) => void,
   signal?: AbortSignal
 ) {
@@ -42,7 +43,7 @@ async function shortenWithRetry(
       const res = await fetch('/api/links/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, apiKey }),
+        body: JSON.stringify({ url, apiKey, domain }),
         signal,
       });
       if (!res.ok) {
@@ -83,7 +84,8 @@ export default function UTMShortenerPro() {
   const {
     language,
     theme,
-    tinyUrlApiKey,
+    shortIoApiKey,
+    shortIoDomain,
     baseUrl,
     campaignName,
     selectedCells,
@@ -193,7 +195,7 @@ export default function UTMShortenerPro() {
     }));
     setCurrentResults(initial);
 
-    if (!tinyUrlApiKey) {
+    if (!shortIoApiKey) {
       // No API key — fall back to full UTM URLs so the user can still copy
       // and see something in the results table.
       const updated = initial.map((r) => ({
@@ -216,7 +218,7 @@ export default function UTMShortenerPro() {
 
     // Process sequentially with retry
     for (const r of [...initial]) {
-      await shortenWithRetry(r.fullUtmUrl, tinyUrlApiKey, (patch) => {
+      await shortenWithRetry(r.fullUtmUrl, shortIoApiKey, shortIoDomain, (patch) => {
         updateResult(r.source, r.medium, patch);
       });
     }
@@ -248,7 +250,7 @@ export default function UTMShortenerPro() {
     setIsRetrying(true);
     setError(null);
     for (const r of failed) {
-      await shortenWithRetry(r.fullUtmUrl, tinyUrlApiKey, (patch) => {
+      await shortenWithRetry(r.fullUtmUrl, shortIoApiKey, shortIoDomain, (patch) => {
         updateResult(r.source, r.medium, patch);
       });
     }

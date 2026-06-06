@@ -11,23 +11,27 @@ interface SettingsModalProps {
 export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps) {
   const language = useAppStore((s) => s.language);
   const theme = useAppStore((s) => s.theme);
-  const tinyUrlApiKey = useAppStore((s) => s.tinyUrlApiKey);
+  const shortIoApiKey = useAppStore((s) => s.shortIoApiKey);
+  const shortIoDomain = useAppStore((s) => s.shortIoDomain);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const setTheme = useAppStore((s) => s.setTheme);
-  const setTinyUrlApiKey = useAppStore((s) => s.setTinyUrlApiKey);
+  const setShortIoApiKey = useAppStore((s) => s.setShortIoApiKey);
+  const setShortIoDomain = useAppStore((s) => s.setShortIoDomain);
 
-  const [apiKeyInput, setApiKeyInput] = useState(tinyUrlApiKey);
+  const [apiKeyInput, setApiKeyInput] = useState(shortIoApiKey);
+  const [domainInput, setDomainInput] = useState(shortIoDomain);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setApiKeyInput(tinyUrlApiKey);
+      setApiKeyInput(shortIoApiKey);
+      setDomainInput(shortIoDomain);
       setTestResult(null);
       setSaved(false);
     }
-  }, [isOpen, tinyUrlApiKey]);
+  }, [isOpen, shortIoApiKey, shortIoDomain]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,7 +45,8 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
   if (!isOpen) return null;
 
   const handleSave = () => {
-    setTinyUrlApiKey(apiKeyInput.trim());
+    setShortIoApiKey(apiKeyInput.trim());
+    setShortIoDomain(domainInput.trim() || 'arti.s.gy');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -54,13 +59,17 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch('https://api.tinyurl.com/create', {
+      const res = await fetch('https://api.short.io/links', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKeyInput.trim()}`,
+          Accept: 'application/json',
+          Authorization: apiKeyInput.trim(),
         },
-        body: JSON.stringify({ url: 'https://example.com', domain: 'tinyurl.com' }),
+        body: JSON.stringify({
+          originalURL: 'https://example.com',
+          domain: domainInput.trim() || 'arti.s.gy',
+        }),
       });
       setTestResult(res.ok ? 'success' : 'error');
     } catch {
@@ -148,13 +157,13 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
             </div>
           </div>
 
-          {/* TinyURL API Key */}
+          {/* Short.io API Key */}
           <div>
             <label
               htmlFor="api-key"
               className="block text-sm font-semibold mb-2 text-ink-700 dark:text-ink-100"
             >
-              {t('tinyUrlApiKey')}
+              {t('shortIoApiKey')}
             </label>
             <input
               id="api-key"
@@ -168,24 +177,47 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
             <p className="text-xs text-ink-500 dark:text-ink-400 mt-1.5">
               {t('apiKeyHint')}
             </p>
-            <button
-              onClick={handleTest}
-              disabled={testing || !apiKeyInput.trim()}
-              className="mt-2 text-xs px-3 py-1.5 rounded-md bg-copper-500/15 text-copper-600 dark:text-copper-300 border border-copper-500/30 hover:bg-copper-500/25 font-medium transition"
-            >
-              {testing ? t('testing') : t('testConnection')}
-            </button>
-            {testResult === 'success' && (
-              <p className="text-xs text-teal-700 dark:text-teal-300 mt-2">
-                ✓ {t('connectionSuccess')}
-              </p>
-            )}
-            {testResult === 'error' && (
-              <p className="text-xs text-red-500 dark:text-red-400 mt-2">
-                ✗ {t('connectionError')}
-              </p>
-            )}
           </div>
+
+          {/* Short.io Domain */}
+          <div>
+            <label
+              htmlFor="api-domain"
+              className="block text-sm font-semibold mb-2 text-ink-700 dark:text-ink-100"
+            >
+              {t('shortIoDomain')}
+            </label>
+            <input
+              id="api-domain"
+              type="text"
+              value={domainInput}
+              onChange={(e) => setDomainInput(e.target.value)}
+              placeholder="arti.s.gy"
+              className="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-ink-900 border border-ink-200 dark:border-ink-700 text-ink-900 dark:text-white placeholder:text-ink-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
+              autoComplete="off"
+            />
+            <p className="text-xs text-ink-500 dark:text-ink-400 mt-1.5">
+              {t('shortIoDomainHint')}
+            </p>
+          </div>
+
+          <button
+            onClick={handleTest}
+            disabled={testing || !apiKeyInput.trim()}
+            className="text-xs px-3 py-1.5 rounded-md bg-copper-500/15 text-copper-600 dark:text-copper-300 border border-copper-500/30 hover:bg-copper-500/25 font-medium transition"
+          >
+            {testing ? t('testing') : t('testConnection')}
+          </button>
+          {testResult === 'success' && (
+            <p className="text-xs text-teal-700 dark:text-teal-300">
+              ✓ {t('connectionSuccess')}
+            </p>
+          )}
+          {testResult === 'error' && (
+            <p className="text-xs text-red-500 dark:text-red-400">
+              ✗ {t('connectionError')}
+            </p>
+          )}
         </div>
 
         <div className="mt-8 flex flex-col-reverse sm:flex-row gap-2">
