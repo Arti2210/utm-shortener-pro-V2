@@ -26,6 +26,7 @@ export interface Translations {
   mediums: string;
   selectAll: string;
   clearAll: string;
+  cells: string;
   selected: string;
   combinationsWillBeGenerated: string;
   
@@ -115,6 +116,7 @@ export const translations: Record<Language, Translations> = {
     mediums: 'Типи контенту',
     selectAll: 'Вибрати все',
     clearAll: 'Очистити все',
+    cells: 'комірок',
     selected: 'Вибрано',
     combinationsWillBeGenerated: 'буде згенеровано комбінацій',
     
@@ -196,6 +198,7 @@ export const translations: Record<Language, Translations> = {
     mediums: 'Content Types',
     selectAll: 'Select All',
     clearAll: 'Clear All',
+    cells: 'cells',
     selected: 'Selected',
     combinationsWillBeGenerated: 'combinations will be generated',
     

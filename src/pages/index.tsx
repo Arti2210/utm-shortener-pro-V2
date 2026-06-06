@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Head from 'next/head';
-import { useAppStore, GeneratedLink, HistoryItem, isValidCombination } from '../store/appStore';
+import { useAppStore, GeneratedLink, HistoryItem } from '../store/appStore';
 import { getTranslation } from '../i18n/translations';
 import { isValidUrl, sanitizeCampaignName } from '../utils/utm';
 
@@ -86,8 +86,7 @@ export default function UTMShortenerPro() {
     tinyUrlApiKey,
     baseUrl,
     campaignName,
-    selectedPlatforms,
-    selectedMediums,
+    selectedCells,
     currentResults,
     isGenerating,
     error,
@@ -145,21 +144,15 @@ export default function UTMShortenerPro() {
     return sanitized ? null : t('campaignRequired');
   }, [campaignName, t]);
 
-  const combinations = useMemo(() => {
-    const list: Array<{ source: string; medium: string }> = [];
-    for (const p of selectedPlatforms) {
-      for (const m of selectedMediums) {
-        if (isValidCombination(p, m)) list.push({ source: p, medium: m });
-      }
-    }
-    return list;
-  }, [selectedPlatforms, selectedMediums]);
+  const combinations = useMemo(
+    () => selectedCells.map((c) => ({ source: c.platform, medium: c.placement })),
+    [selectedCells]
+  );
 
   const canGenerate =
     baseUrl.trim() !== '' &&
     campaignName.trim() !== '' &&
-    selectedPlatforms.length > 0 &&
-    selectedMediums.length > 0 &&
+    selectedCells.length > 0 &&
     !urlError &&
     !campaignError;
 
@@ -180,7 +173,7 @@ export default function UTMShortenerPro() {
       if (!campaignName.trim()) errs.campaign = t('campaignRequired');
       else if (campaignError) errs.campaign = campaignError;
       setFieldErrors(errs);
-      if (selectedPlatforms.length === 0 || selectedMediums.length === 0) {
+      if (selectedCells.length === 0) {
         setError(t('selectAtLeastOne'));
       }
       return;

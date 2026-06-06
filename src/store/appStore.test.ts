@@ -44,56 +44,139 @@ describe('isValidCombination', () => {
   });
 });
 
-describe('useAppStore', () => {
+describe('useAppStore — cell selection', () => {
   beforeEach(() => {
-    // Reset state
     useAppStore.setState({
       baseUrl: '',
       campaignName: '',
-      selectedPlatforms: [],
-      selectedMediums: [],
+      selectedCells: [],
       currentResults: [],
       isGenerating: false,
       error: null,
     });
   });
 
-  it('toggles platforms', () => {
-    const { togglePlatform } = useAppStore.getState();
-    togglePlatform('telegram');
-    expect(useAppStore.getState().selectedPlatforms).toContain('telegram');
-    togglePlatform('telegram');
-    expect(useAppStore.getState().selectedPlatforms).not.toContain('telegram');
-  });
-
-  it('toggles mediums', () => {
-    const { toggleMedium } = useAppStore.getState();
-    toggleMedium('post');
-    toggleMedium('story');
-    const sel = useAppStore.getState().selectedMediums;
-    expect(sel).toContain('post');
-    expect(sel).toContain('story');
-  });
-
-  it('getSelectedCombinationsCount returns 0 when empty', () => {
-    expect(useAppStore.getState().getSelectedCombinationsCount()).toBe(0);
-  });
-
-  it('getSelectedCombinationsCount respects Profile Header restriction', () => {
-    const { selectAllPlatforms, selectAllMediums, clearAllMediums, toggleMedium } =
+  it('toggleCell adds a single (platform, placement) pair', () => {
+    const { toggleCell, isCellSelected, getSelectedCombinationsCount } =
       useAppStore.getState();
+    toggleCell('linkedin', 'story');
+    expect(isCellSelected('linkedin', 'story')).toBe(true);
+    expect(getSelectedCombinationsCount()).toBe(1);
+  });
 
-    // Select all 6 platforms + 4 mediums
-    selectAllPlatforms();
-    selectAllMediums();
+  it('toggleCell on a different pair does not light up the previous one', () => {
+    // Regression: old bug — selecting one cell caused extra cells to light up
+    // because state was two separate arrays and the matrix built the cartesian
+    // product on every render. With cell-based storage this must not happen.
+    const { toggleCell, isCellSelected, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    toggleCell('linkedin', 'story');
+    toggleCell('instagram', 'reels');
+    expect(isCellSelected('linkedin', 'story')).toBe(true);
+    expect(isCellSelected('instagram', 'reels')).toBe(true);
+    expect(isCellSelected('linkedin', 'reels')).toBe(false);
+    expect(isCellSelected('instagram', 'story')).toBe(false);
+    expect(isCellSelected('linkedin', 'post')).toBe(false);
+    expect(getSelectedCombinationsCount()).toBe(2);
+  });
 
-    // 6 platforms × 3 universal mediums + 1 (youtube) = 19
-    expect(useAppStore.getState().getSelectedCombinationsCount()).toBe(19);
+  it('toggleCell twice on the same pair deselects it', () => {
+    const { toggleCell, isCellSelected, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    toggleCell('linkedin', 'story');
+    toggleCell('linkedin', 'story');
+    expect(isCellSelected('linkedin', 'story')).toBe(false);
+    expect(getSelectedCombinationsCount()).toBe(0);
+  });
 
-    clearAllMediums();
-    toggleMedium('profile_header');
-    // Only 1 platform (youtube) accepts profile_header
-    expect(useAppStore.getState().getSelectedCombinationsCount()).toBe(1);
+  it('toggleCell ignores invalid combinations', () => {
+    const { toggleCell, isCellSelected, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    // profile_header is YouTube-only
+    toggleCell('telegram', 'profile_header');
+    expect(isCellSelected('telegram', 'profile_header')).toBe(false);
+    expect(getSelectedCombinationsCount()).toBe(0);
+  });
+
+  it('selectAllCells / clearAllCells', () => {
+    const { selectAllCells, clearAllCells, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    selectAllCells();
+    // 6 platforms × 3 universal mediums + 1 (youtube + profile_header) = 19
+    expect(getSelectedCombinationsCount()).toBe(19);
+    clearAllCells();
+    expect(getSelectedCombinationsCount()).toBe(0);
+  });
+
+  it('togglePlatformColumn fills an entire platform column', () => {
+    const { togglePlatformColumn, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    togglePlatformColumn('linkedin');
+    // linkedin accepts post, story, reels — 3 cells
+    expect(getSelectedCombinationsCount()).toBe(3);
+  });
+
+  it('togglePlatformColumn twice clears the column', () => {
+    const { togglePlatformColumn, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    togglePlatformColumn('linkedin');
+    togglePlatformColumn('linkedin');
+    expect(getSelectedCombinationsCount()).toBe(0);
+  });
+
+  it('togglePlacementRow fills an entire placement row', () => {
+    const { togglePlacementRow, getSelectedCombinationsCount } =
+      useAppStore.getState();
+    togglePlacementRow('story');
+    // story is valid on all 6 platforms
+    expect(getSelectedCombinationsCount()).toBe(6);
+  });
+
+  it('loadFromHistory rebuilds selectedCells from results', () => {
+    const { addToHistory, loadFromHistory, isCellSelected } =
+      useAppStore.getState();
+    addToHistory({
+      campaignName: 'sale',
+      baseUrl: 'https://x.com',
+      results: [
+        {
+          source: 'telegram',
+          medium: 'post',
+          fullUtmUrl: 'u',
+          shortUrl: null,
+          status: 'success',
+          attempts: 1,
+        },
+        {
+          source: 'instagram',
+          medium: 'reels',
+          fullUtmUrl: 'u',
+          shortUrl: null,
+          status: 'success',
+          attempts: 1,
+        },
+      ],
+      count: 2,
+    });
+    const hist = useAppStore.getState().history[0];
+    loadFromHistory(hist);
+    expect(isCellSelected('telegram', 'post')).toBe(true);
+    expect(isCellSelected('instagram', 'reels')).toBe(true);
+    expect(isCellSelected('instagram', 'post')).toBe(false);
+  });
+});
+
+describe('useAppStore — results / history', () => {
+  beforeEach(() => {
+    useAppStore.setState({
+      baseUrl: '',
+      campaignName: '',
+      selectedCells: [],
+      currentResults: [],
+      isGenerating: false,
+      error: null,
+      history: [],
+    });
   });
 
   it('addToHistory stores items with id and timestamp', () => {
@@ -138,8 +221,22 @@ describe('useAppStore', () => {
     expect(failed).toHaveLength(1);
     expect(failed[0].source).toBe('c');
   });
+});
 
-  it('setLanguage updates html lang attribute (jsdom)', () => {
+describe('useAppStore — settings', () => {
+  beforeEach(() => {
+    useAppStore.setState({
+      baseUrl: '',
+      campaignName: '',
+      selectedCells: [],
+      currentResults: [],
+      isGenerating: false,
+      error: null,
+      history: [],
+    });
+  });
+
+  it('setLanguage updates state', () => {
     const { setLanguage } = useAppStore.getState();
     setLanguage('en');
     expect(useAppStore.getState().language).toBe('en');
@@ -149,5 +246,24 @@ describe('useAppStore', () => {
     const { setTheme } = useAppStore.getState();
     setTheme('light');
     expect(useAppStore.getState().theme).toBe('light');
+  });
+
+  it('resetForm clears selected cells and results', () => {
+    useAppStore.setState({
+      selectedCells: [{ platform: 'telegram', placement: 'post' }],
+      currentResults: [
+        {
+          source: 'telegram',
+          medium: 'post',
+          fullUtmUrl: 'u',
+          shortUrl: null,
+          status: 'pending',
+          attempts: 0,
+        },
+      ],
+    });
+    useAppStore.getState().resetForm();
+    expect(useAppStore.getState().selectedCells).toEqual([]);
+    expect(useAppStore.getState().currentResults).toEqual([]);
   });
 });

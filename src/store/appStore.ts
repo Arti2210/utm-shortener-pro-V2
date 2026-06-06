@@ -16,6 +16,16 @@ export interface Medium {
 
 export type LinkStatus = 'success' | 'failed' | 'pending';
 
+/**
+ * A selected cell is an explicit (platform, placement) pair.
+ * The matrix stores cells independently so that toggling one cell
+ * never causes another cell to light up.
+ */
+export interface SelectedCell {
+  platform: string;
+  placement: string;
+}
+
 export interface GeneratedLink {
   source: string;
   medium: string;
@@ -41,8 +51,8 @@ export interface AppState {
   tinyUrlApiKey: string;
   baseUrl: string;
   campaignName: string;
-  selectedPlatforms: string[];
-  selectedMediums: string[];
+  /** The list of selected (platform, placement) pairs. */
+  selectedCells: SelectedCell[];
   currentResults: GeneratedLink[];
   isGenerating: boolean;
   error: string | null;
@@ -53,12 +63,18 @@ export interface AppState {
   setTinyUrlApiKey: (key: string) => void;
   setBaseUrl: (url: string) => void;
   setCampaignName: (name: string) => void;
-  togglePlatform: (code: string) => void;
-  toggleMedium: (code: string) => void;
-  selectAllPlatforms: () => void;
-  clearAllPlatforms: () => void;
-  selectAllMediums: () => void;
-  clearAllMediums: () => void;
+  /** Toggle a single (platform, placement) pair in the matrix. */
+  toggleCell: (platform: string, placement: string) => void;
+  /** Returns true if the cell is currently selected. */
+  isCellSelected: (platform: string, placement: string) => boolean;
+  /** Select every valid (platform, placement) pair. */
+  selectAllCells: () => void;
+  /** Clear all selected cells. */
+  clearAllCells: () => void;
+  /** Select all cells that belong to a single platform (any placement). */
+  togglePlatformColumn: (platform: string) => void;
+  /** Select all cells that belong to a single placement (any platform). */
+  togglePlacementRow: (placement: string) => void;
   setCurrentResults: (results: GeneratedLink[]) => void;
   updateResult: (source: string, medium: string, patch: Partial<GeneratedLink>) => void;
   setIsGenerating: (loading: boolean) => void;
@@ -70,6 +86,7 @@ export interface AppState {
   closeSettings: () => void;
   resetForm: () => void;
   getFilteredHistory: () => HistoryItem[];
+  /** Number of currently selected cells. */
   getSelectedCombinationsCount: () => number;
   getFailedResults: () => GeneratedLink[];
 }
@@ -93,7 +110,7 @@ export const MEDIUMS: Medium[] = [
 ];
 
 /**
- * Returns true if the (platform, medium) combination is valid for the matrix.
+ * Returns true if the (platform, placement) combination is valid for the matrix.
  * Profile Header is only valid for YouTube; the rest are valid for all platforms.
  */
 export function isValidCombination(platformCode: string, mediumCode: string): boolean {
@@ -106,6 +123,8 @@ export function isValidCombination(platformCode: string, mediumCode: string): bo
 const EXPIRATION_DAYS = 7;
 const EXPIRATION_MS = EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
+const cellKey = (platform: string, placement: string) => `${platform}::${placement}`;
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -114,8 +133,7 @@ export const useAppStore = create<AppState>()(
       tinyUrlApiKey: '',
       baseUrl: '',
       campaignName: '',
-      selectedPlatforms: [],
-      selectedMediums: [],
+      selectedCells: [],
       currentResults: [],
       isGenerating: false,
       error: null,
@@ -144,26 +162,92 @@ export const useAppStore = create<AppState>()(
       setBaseUrl: (baseUrl) => set({ baseUrl, error: null }),
       setCampaignName: (campaignName) => set({ campaignName, error: null }),
 
-      togglePlatform: (code) => {
-        const { selectedPlatforms } = get();
-        const newSelected = selectedPlatforms.includes(code)
-          ? selectedPlatforms.filter((p) => p !== code)
-          : [...selectedPlatforms, code];
-        set({ selectedPlatforms: newSelected });
+      toggleCell: (platform, placement) => {
+        if (!isValidCombination(platform, placement)) return;
+        const { selectedCells } = get();
+        const k = cellKey(platform, placement);
+        const exists = selectedCells.some(
+          (c) => cellKey(c.platform, c.placement) === k
+        );
+        if (exists) {
+          set({
+            selectedCells: selectedCells.filter(
+              (c) => cellKey(c.platform, c.placement) !== k
+            ),
+          });
+        } else {
+          set({ selectedCells: [...selectedCells, { platform, placement }] });
+        }
       },
 
-      toggleMedium: (code) => {
-        const { selectedMediums } = get();
-        const newSelected = selectedMediums.includes(code)
-          ? selectedMediums.filter((m) => m !== code)
-          : [...selectedMediums, code];
-        set({ selectedMediums: newSelected });
+      isCellSelected: (platform, placement) => {
+        const k = cellKey(platform, placement);
+        return get().selectedCells.some(
+          (c) => cellKey(c.platform, c.placement) === k
+        );
       },
 
-      selectAllPlatforms: () => set({ selectedPlatforms: PLATFORMS.map((p) => p.code) }),
-      clearAllPlatforms: () => set({ selectedPlatforms: [] }),
-      selectAllMediums: () => set({ selectedMediums: MEDIUMS.map((m) => m.code) }),
-      clearAllMediums: () => set({ selectedMediums: [] }),
+      selectAllCells: () => {
+        const cells: SelectedCell[] = [];
+        for (const p of PLATFORMS) {
+          for (const m of MEDIUMS) {
+            if (isValidCombination(p.code, m.code)) {
+              cells.push({ platform: p.code, placement: m.code });
+            }
+          }
+        }
+        set({ selectedCells: cells });
+      },
+
+      clearAllCells: () => set({ selectedCells: [] }),
+
+      togglePlatformColumn: (platform) => {
+        const { selectedCells } = get();
+        const inColumn = selectedCells.filter((c) => c.platform === platform);
+        // If every valid medium for this platform is already selected, deselect them.
+        // Otherwise, fill the column.
+        const validMediums = MEDIUMS.filter((m) =>
+          isValidCombination(platform, m.code)
+        );
+        const allSelected = validMediums.every((m) =>
+          inColumn.some((c) => c.placement === m.code)
+        );
+        if (allSelected) {
+          set({
+            selectedCells: selectedCells.filter((c) => c.platform !== platform),
+          });
+        } else {
+          const withoutColumn = selectedCells.filter((c) => c.platform !== platform);
+          const additions: SelectedCell[] = validMediums.map((m) => ({
+            platform,
+            placement: m.code,
+          }));
+          set({ selectedCells: [...withoutColumn, ...additions] });
+        }
+      },
+
+      togglePlacementRow: (placement) => {
+        const { selectedCells } = get();
+        const inRow = selectedCells.filter((c) => c.placement === placement);
+        const validPlatforms = PLATFORMS.filter((p) =>
+          isValidCombination(p.code, placement)
+        );
+        const allSelected = validPlatforms.every((p) =>
+          inRow.some((c) => c.platform === p.code)
+        );
+        if (allSelected) {
+          set({
+            selectedCells: selectedCells.filter((c) => c.placement !== placement),
+          });
+        } else {
+          const withoutRow = selectedCells.filter((c) => c.placement !== placement);
+          const additions: SelectedCell[] = validPlatforms.map((p) => ({
+            platform: p.code,
+            placement,
+          }));
+          set({ selectedCells: [...withoutRow, ...additions] });
+        }
+      },
 
       setCurrentResults: (currentResults) => set({ currentResults }),
 
@@ -192,12 +276,17 @@ export const useAppStore = create<AppState>()(
       clearHistory: () => set({ history: [] }),
 
       loadFromHistory: (item) => {
+        // Reconstruct the cell set from the stored results so the matrix
+        // reflects what was generated last time.
+        const cells: SelectedCell[] = item.results.map((r) => ({
+          platform: r.source,
+          placement: r.medium,
+        }));
         set({
           baseUrl: item.baseUrl,
           campaignName: item.campaignName,
           currentResults: item.results,
-          selectedPlatforms: [...new Set(item.results.map((r) => r.source))],
-          selectedMediums: [...new Set(item.results.map((r) => r.medium))],
+          selectedCells: cells,
         });
       },
 
@@ -208,8 +297,7 @@ export const useAppStore = create<AppState>()(
         set({
           baseUrl: '',
           campaignName: '',
-          selectedPlatforms: [],
-          selectedMediums: [],
+          selectedCells: [],
           currentResults: [],
           error: null,
         }),
@@ -219,17 +307,7 @@ export const useAppStore = create<AppState>()(
         return get().history.filter((item) => now - item.timestamp < EXPIRATION_MS);
       },
 
-      getSelectedCombinationsCount: () => {
-        const { selectedPlatforms, selectedMediums } = get();
-        if (selectedPlatforms.length === 0 || selectedMediums.length === 0) return 0;
-        let count = 0;
-        for (const p of selectedPlatforms) {
-          for (const m of selectedMediums) {
-            if (isValidCombination(p, m)) count += 1;
-          }
-        }
-        return count;
-      },
+      getSelectedCombinationsCount: () => get().selectedCells.length,
 
       getFailedResults: () =>
         get().currentResults.filter((r) => r.status === 'failed'),
