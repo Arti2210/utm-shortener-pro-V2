@@ -22,6 +22,7 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
   const [domainInput, setDomainInput] = useState(shortIoDomain);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
+  const [testErrorMessage, setTestErrorMessage] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
       setApiKeyInput(shortIoApiKey);
       setDomainInput(shortIoDomain);
       setTestResult(null);
+      setTestErrorMessage(null);
       setSaved(false);
     }
   }, [isOpen, shortIoApiKey, shortIoDomain]);
@@ -58,22 +60,26 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
     }
     setTesting(true);
     setTestResult(null);
+    setTestErrorMessage(null);
     try {
-      const res = await fetch('https://api.short.io/links', {
+      const res = await fetch('/api/shortio/test', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: apiKeyInput.trim(),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          originalURL: 'https://example.com',
-          domain: domainInput.trim() || 'arti.s.gy',
+          apiKey: apiKeyInput.trim(),
+          domain: (domainInput.trim() || 'arti.s.gy'),
         }),
       });
-      setTestResult(res.ok ? 'success' : 'error');
-    } catch {
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        setTestResult('success');
+      } else {
+        setTestResult('error');
+        setTestErrorMessage(data?.message || data?.error || `HTTP ${res.status}`);
+      }
+    } catch (e: any) {
       setTestResult('error');
+      setTestErrorMessage(e?.message || 'Network error');
     } finally {
       setTesting(false);
     }
@@ -214,9 +220,12 @@ export default function SettingsModal({ isOpen, onClose, t }: SettingsModalProps
             </p>
           )}
           {testResult === 'error' && (
-            <p className="text-xs text-red-500 dark:text-red-400">
-              ✗ {t('connectionError')}
-            </p>
+            <div className="text-xs text-red-500 dark:text-red-400 space-y-0.5">
+              <p>✗ {t('connectionError')}</p>
+              {testErrorMessage && (
+                <p className="opacity-80 break-all">{testErrorMessage}</p>
+              )}
+            </div>
           )}
         </div>
 
