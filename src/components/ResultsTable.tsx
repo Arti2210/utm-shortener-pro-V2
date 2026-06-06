@@ -140,8 +140,12 @@ export default function ResultsTable({
                       className="p-2 border-t border-ink-200 dark:border-ink-700 align-top"
                     >
                       {!valid ? (
-                        <div className="h-20 flex items-center justify-center text-xs text-ink-300 dark:text-ink-600">
-                          —
+                        <div
+                          className="h-20 flex flex-col items-center justify-center text-[10px] text-ink-300 dark:text-ink-600 gap-1"
+                          title={`${m.name} доступно тільки для YouTube`}
+                        >
+                          <span className="text-base">—</span>
+                          <span className="uppercase tracking-wider opacity-60">YT only</span>
                         </div>
                       ) : !result ? (
                         <div className="h-20 flex items-center justify-center text-xs text-ink-400 dark:text-ink-500">

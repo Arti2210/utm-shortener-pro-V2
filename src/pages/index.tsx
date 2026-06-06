@@ -194,8 +194,14 @@ export default function UTMShortenerPro() {
     setCurrentResults(initial);
 
     if (!tinyUrlApiKey) {
-      // No API key — just keep full URLs as "success" so user can copy
-      const updated = initial.map((r) => ({ ...r, status: 'success' as const }));
+      // No API key — fall back to full UTM URLs so the user can still copy
+      // and see something in the results table.
+      const updated = initial.map((r) => ({
+        ...r,
+        status: 'success' as const,
+        shortUrl: r.fullUtmUrl,
+        attempts: 0,
+      }));
       setCurrentResults(updated);
       addToHistory({
         campaignName: sanitizedCampaign,
