@@ -77,6 +77,35 @@ describe('buildUtmUrl', () => {
     const url = buildUtmUrl('https://example.com', 'fb', 'post', 'Sale 2024!');
     expect(url).toContain('utm_campaign=sale_2024');
   });
+
+  it('strips existing query string from baseUrl (no double ?)', () => {
+    const url = buildUtmUrl(
+      'https://music.youtube.com/watch?v=mZbhFq362zg',
+      'telegram',
+      'post',
+      'sale'
+    );
+    expect(url).not.toContain('?v=');
+    expect(url).not.toMatch(/\?[^u]/); // first char after ? must be 'u' from utm_
+    expect(url).toBe(
+      'https://music.youtube.com/watch?utm_source=telegram&utm_medium=post&utm_campaign=sale'
+    );
+  });
+
+  it('strips existing query string and trailing slash together', () => {
+    const url = buildUtmUrl(
+      'https://example.com/path/?utm_source=old&id=5',
+      'fb',
+      'story',
+      'c'
+    );
+    expect(url).toBe('https://example.com/path?utm_source=fb&utm_medium=story&utm_campaign=c');
+  });
+
+  it('strips fragment from baseUrl', () => {
+    const url = buildUtmUrl('https://example.com/page#section', 'fb', 'post', 'c');
+    expect(url).toBe('https://example.com/page?utm_source=fb&utm_medium=post&utm_campaign=c');
+  });
 });
 
 describe('generateCombinations', () => {

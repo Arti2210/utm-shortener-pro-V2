@@ -107,17 +107,17 @@ export default function ResultsTable({
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-ink-200 dark:border-ink-700">
-        <table className="w-full border-collapse min-w-[680px]">
+      <div className="overflow-x-auto rounded-xl border border-ink-200 dark:border-ink-700 -mx-2 px-2">
+        <table className="w-full border-collapse min-w-[640px] text-sm">
           <thead>
             <tr>
-              <th className="p-3 text-xs font-semibold text-left text-ink-500 dark:text-ink-300 bg-ink-50 dark:bg-ink-800 border-b border-r border-ink-200 dark:border-ink-700">
+              <th className="p-2 text-[11px] font-semibold text-left text-ink-500 dark:text-ink-300 bg-ink-50 dark:bg-ink-800 border-b border-r border-ink-200 dark:border-ink-700 whitespace-nowrap">
                 ↓ {t('platform')} / {t('medium')} →
               </th>
               {MEDIUMS.map((m) => (
                 <th
                   key={m.code}
-                  className="p-3 text-xs font-semibold text-teal-700 dark:text-teal-300 bg-ink-50 dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 whitespace-nowrap"
+                  className="p-2 text-[11px] font-semibold text-teal-700 dark:text-teal-300 bg-ink-50 dark:bg-ink-800 border-b border-ink-200 dark:border-ink-700 whitespace-nowrap"
                 >
                   {m.name}
                 </th>
@@ -127,7 +127,7 @@ export default function ResultsTable({
           <tbody>
             {PLATFORMS.map((p) => (
               <tr key={p.code}>
-                <th className="p-3 text-xs font-semibold text-left text-ink-700 dark:text-ink-100 bg-ink-50/60 dark:bg-ink-800/60 border-r border-ink-200 dark:border-ink-700 whitespace-nowrap">
+                <th className="p-2 text-[11px] font-semibold text-left text-ink-700 dark:text-ink-100 bg-ink-50/60 dark:bg-ink-800/60 border-r border-ink-200 dark:border-ink-700 whitespace-nowrap">
                   {p.name}
                 </th>
                 {MEDIUMS.map((m) => {
@@ -137,7 +137,7 @@ export default function ResultsTable({
                   return (
                     <td
                       key={`${p.code}-${m.code}`}
-                      className="p-2 border-t border-ink-200 dark:border-ink-700 align-top"
+                      className="p-2 border-t border-ink-200 dark:border-ink-700 align-top min-w-[140px] max-w-[200px]"
                     >
                       {!valid ? (
                         <div
@@ -149,11 +149,11 @@ export default function ResultsTable({
                         </div>
                       ) : !result ? (
                         <div className="h-20 flex items-center justify-center text-xs text-ink-400 dark:text-ink-500">
-                          — 
+                          —
                         </div>
                       ) : (
                         <div className="space-y-1.5 min-h-[80px]">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-1">
                             {statusBadge(result.status)}
                             {result.status === 'failed' && result.attempts > 1 && (
                               <span className="text-[10px] text-ink-400">
@@ -166,7 +166,7 @@ export default function ResultsTable({
                               href={result.shortUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block text-[11px] text-teal-700 dark:text-teal-300 hover:text-copper-500 break-all leading-tight"
+                              className="block text-[11px] text-teal-700 dark:text-teal-300 hover:text-copper-500 break-all leading-tight max-w-full"
                               title={result.shortUrl}
                             >
                               {result.shortUrl.replace(/^https?:\/\//, '')}

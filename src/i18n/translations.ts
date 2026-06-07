@@ -29,7 +29,9 @@ export interface Translations {
   cells: string;
   selected: string;
   combinationsWillBeGenerated: string;
-  
+  matrixDescription: string;
+  matrixHint: string;
+
   // Buttons
   generateLinks: string;
   generating: string;
@@ -119,9 +121,11 @@ export const translations: Record<Language, Translations> = {
     selectAll: 'Вибрати все',
     clearAll: 'Очистити все',
     cells: 'комірок',
+    matrixDescription: 'Натискайте на комірки, щоб обрати пару «платформа × тип контенту».',
+    matrixHint: 'Клік на заголовок рядка або стовпця вибирає/знімає вибір одразу для всієї лінії.',
     selected: 'Вибрано',
     combinationsWillBeGenerated: 'буде згенеровано комбінацій',
-    
+
     generateLinks: 'Згенерувати посилання',
     generating: 'Генерація...',
     copy: 'Копіювати',
@@ -203,8 +207,13 @@ export const translations: Record<Language, Translations> = {
     selectAll: 'Select All',
     clearAll: 'Clear All',
     cells: 'cells',
+    matrixDescription: 'Click cells to select a platform × placement pair.',
+    matrixHint: 'Click a row or column header to toggle the whole line.',
     selected: 'Selected',
     combinationsWillBeGenerated: 'combinations will be generated',
+    retrying: 'Retrying…',
+    retryFailed: 'Retry failed',
+    noResults: 'No results yet. Pick some cells and press “Generate links”.',
     
     generateLinks: 'Generate Links',
     generating: 'Generating...',
@@ -216,7 +225,6 @@ export const translations: Record<Language, Translations> = {
     close: 'Close',
     
     resultsTitle: 'Generation Results',
-    noResults: 'No results yet. Fill the form and click "Generate Links".', 
     platform: 'Platform',
     medium: 'Type',
     fullUtmUrl: 'Full UTM URL',
@@ -261,8 +269,6 @@ export const translations: Record<Language, Translations> = {
     copied: 'Copied!',
     expiresIn: 'Stored for',
     week: '1 week',
-    retryFailed: 'Retry failed',
-    retrying: 'Retrying...',
   },
 };
 
